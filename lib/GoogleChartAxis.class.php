@@ -29,6 +29,11 @@ class GoogleChartAxis
 		return $this->name;
 	}
 
+	/**
+	 * Custom axis labels (chxl).
+	 *
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#axis_labels
+	 */
 	public function setLabels(array $labels)
 	{
 		$this->labels = $labels;
@@ -48,12 +53,11 @@ class GoogleChartAxis
 	}
 
 	/**
+	 * Axis ranges (chxr).
 	 *
-	 * @param number $start_val A number, defining the low value for this axis.
-	 * @param number $end_val A number, defining the high value for this axis.
-	 * @param number|null $step [Optional] The count step between ticks on the axis. There is no default step value; the step is calculated to try to show a set of nicely spaced labels.
+	 * Specify the range of values that appear.
 	 *
-	 * @see http://code.google.com/apis/chart/docs/gallery/line_charts.html#axis_range
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#axis_range
 	 */
 	public function setRange($start_val, $end_val, $step = null)
 	{
@@ -73,9 +77,9 @@ class GoogleChartAxis
 		if ( $this->range === null )
 			return null;
 
-		$range = '%d,'.$this->range['start_val'].','.$this->range['end_val'];
+		$str = '%d,'.$this->range['start_val'].','.$this->range['end_val'];
 		if ( $this->range['step'] )
-			$range .= ','.$this->range['step'];
-		return $range;
+			$str .= ','.$this->range['step'];
+		return $str;
 	}
 }

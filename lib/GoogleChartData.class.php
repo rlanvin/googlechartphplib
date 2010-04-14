@@ -27,7 +27,17 @@ class GoogleChartData
 		$this->setColor('336699');
 		$this->setStyle(2);
 	}
+	
+	public function getValues()
+	{
+		return $this->values;
+	}
 
+	/**
+	 * Color (chco).
+	 *
+	 * http://code.google.com/apis/chart/docs/chart_params.html#gcharts_series_color
+	 */
 	public function setColor($color)
 	{
 		$this->color = $color;
@@ -39,6 +49,11 @@ class GoogleChartData
 		return $this->color;
 	}
 
+	/**
+	 * Line fill (chm)
+	 *
+	 * @http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_fills
+	 */
 	public function setFill($color)
 	{
 		$this->fill = array(
@@ -58,7 +73,12 @@ class GoogleChartData
 
 		return $fill;
 	}
-	
+
+	/**
+	 * Line styles (chls).
+	 *
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_styles
+	 */
 	public function setStyle($thickness, $dash_length = null, $space_length = null)
 	{
 		$this->style = array(
@@ -75,18 +95,14 @@ class GoogleChartData
 		if ( $raw_value )
 			return $this->style;
 
-		$style = $this->style['thickness'];
+		$str = $this->style['thickness'];
 		if ( $this->style['dash_length'] ) {
-			$style .= ','.$this->style['dash_length'];
+			$str .= ','.$this->style['dash_length'];
 			if  ( $this->style['space_length'] ) {
-				$style .= ','.$this->style['space_length'];
+				$str .= ','.$this->style['space_length'];
 			}
 		}
-		return $style;
+		return $str;
 	}
 
-	public function getValues()
-	{
-		return $this->values;
-	}
 }
