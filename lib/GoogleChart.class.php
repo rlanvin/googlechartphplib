@@ -35,6 +35,8 @@ class GoogleChart
 	private $grid_lines = null;
 	private $parameters = array();
 
+	private $autoscale_axis = null;
+
 	private $url = '';
 
 	/**
@@ -88,6 +90,11 @@ class GoogleChart
 	public function addAxis(GoogleChartAxis $axis)
 	{
 		$this->axes[] = $axis;
+
+		// by default, we auto-scale data on the first y axis
+		if ( $axis->getName() == 'y' && $this->autoscale_axis === null )
+			$this->autoscale_axis = $axis;
+
 		return $this;
 	}
 
@@ -96,8 +103,8 @@ class GoogleChart
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_grid_lines
 	 */
-	public function setGridLines($x_axis_step_size, $y_axis_step_size, $dash_length = null,
-	                             $space_length = null, $x_offset = null, $y_offset = null)
+	public function setGridLines($x_axis_step_size, $y_axis_step_size, $dash_length = false,
+	                             $space_length = false, $x_offset = false, $y_offset = false)
 	{
 		$this->grid_lines = array(
 			'x_axis_step_size' => $x_axis_step_size,
@@ -110,22 +117,22 @@ class GoogleChart
 		return $this;
 	}
 
-	public function getGridLines($raw_value = false)
+	public function getGridLines($compute = true)
 	{
-		if ( $raw_value )
+		if ( ! $compute )
 			return $this->grid_lines;
 
 		if ( $this->grid_lines === null )
 			return null;
 
 		$str = $this->grid_lines['x_axis_step_size'].','.$this->grid_lines['y_axis_step_size'];
-		if ( $this->grid_lines['dash_length'] !== null ) {
+		if ( $this->grid_lines['dash_length'] !== false ) {
 			$str .= ','.$this->grid_lines['dash_length'];
-			if ( $this->grid_lines['space_length'] !== null ) {
+			if ( $this->grid_lines['space_length'] !== false ) {
 				$str .= ','.$this->grid_lines['space_length'];
-				if ( $this->grid_lines['x_offset'] !== null ) {
+				if ( $this->grid_lines['x_offset'] !== false ) {
 					$str .= ','.$this->grid_lines['x_offset'];
-					if ( $this->grid_lines['y_offset'] !== null ) {
+					if ( $this->grid_lines['y_offset'] !== false ) {
 						$str .= ','.$this->grid_lines['y_offset'];
 					}
 				}
@@ -138,7 +145,7 @@ class GoogleChart
  * URL Computation
  * -------------------------------------------------------------------------- */
 
-	protected function computeUrl()
+	protected function computeQuery()
 	{
 		$q = array(
 			'cht' => $this->type,
@@ -154,7 +161,8 @@ class GoogleChart
 
 		$q = array_merge($q, $this->parameters);
 
-		return urldecode(self::BASE_URL.'?'.http_build_query($q));
+		//~ return urldecode(self::BASE_URL.'?'.http_build_query($q));
+		return $q;
 	}
 
 	protected function computeData(array & $q)
@@ -164,12 +172,17 @@ class GoogleChart
 		$styles = array();
 		$fills = array();
 
+		$value_min = 0;
 		$value_max = 0;
 		foreach ( $this->data as $i => $d ) {
 			$values = $d->getValues();
 			$max = max($values);
+			$min = min($values);
 			if ( $max > $value_max ) {
 				$value_max = $max;
+			}
+			if ( $min < $value_min ) {
+				$value_min = $min;
 			}
 			$data[] = implode(',',$values);
 			$colors[] = $d->getColor();
@@ -185,7 +198,13 @@ class GoogleChart
 			$q['chls'] = implode('|',$styles);
 			
 			// autoscale
-			$q['chds'] = '0,'.($value_max + round(10*$value_max/100));
+			//~ $q['chds'] = $value_min.','.($value_max + round(10*$value_max/100));
+			if ( $this->autoscale_axis !== null ) {
+				$range = $this->autoscale_axis->getRange(false);
+				if ( $range !== null ) {
+					$q['chds'] = $range['start_val'].','.$range['end_val'];
+				}
+			}
 		}
 		if ( isset($fills[0]) ) {
 			$q['chm'] = implode('|',$fills);
@@ -199,16 +218,28 @@ class GoogleChart
 		$axes = array();
 		$labels = array();
 		$ranges = array();
+		$tick_marks = array();
+		$styles = array();
 		foreach ( $this->axes as $i => $a ) {
 			$axes[] = $a->getName();
 			$tmp = $a->getLabels();
 			if ( $tmp !== null ) {
 				$labels[] = sprintf($tmp, $i);
 			}
-			
+
 			$tmp = $a->getRange();
 			if ( $tmp !== null ) {
 				$ranges[] = sprintf($tmp, $i);
+			}
+
+			$tmp = $a->getTickMarks();
+			if ( $tmp !== null ) {
+				$tick_marks[] = sprintf($tmp, $i);
+			}
+			
+			$tmp = $a->getStyle();
+			if ( $tmp !== null ) {
+				$styles[] = sprintf($tmp, $i);
 			}
 		}
 		if ( isset($axes[0]) ) {
@@ -219,6 +250,12 @@ class GoogleChart
 			if ( isset($ranges[0]) ) {
 				$q['chxr'] = implode('|', $ranges);
 			}
+			if ( isset($tick_marks[0]) ) {
+				$q['chxtc'] = implode('|', $tick_marks);
+			}
+			if ( isset($styles[0]) ) {
+				$q['chxs'] = implode('|', $styles);
+			}
 		}
 
 		return $this;
@@ -227,7 +264,7 @@ class GoogleChart
 	public function getUrl($use_cache = true)
 	{
 		if ( ! $this->url || ! $use_cache ) {
-			$this->url = $this->computeUrl();
+			$this->url =  urldecode(self::BASE_URL.'?'.http_build_query($this->computeQuery()));
 		}
 		return $this->url;
 	}
@@ -236,6 +273,26 @@ class GoogleChart
 	{
 		$url = $this->getUrl().'&chof=validate';
 		return file_get_contents($url);
+	}
+
+	public function getChartImage($method = 'post')
+	{
+		switch ( $method ) {
+			case 'get':
+				return file_get_contents($this->getUrl(false));
+			case 'post':
+				$context = stream_context_create(array(
+					'http' => array(
+						'method' => 'POST',
+						'content' => http_build_query($this->computeQuery())
+					)
+				));
+				$image = fpassthru(fopen(self::BASE_URL, 'r', false, $context));
+				break;
+			default:
+				throw new Exception(sprintf('Unknown $method "%s". Must be "get" or "post".', $method));
+		}
+		return $image;
 	}
 
 	public function __toString()
@@ -247,5 +304,7 @@ class GoogleChart
 			$this->height
 		);
 		return $str;
+		
+		
 	}
 }

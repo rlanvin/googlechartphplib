@@ -61,9 +61,9 @@ class GoogleChartData
 		);
 	}
 
-	public function getFill($raw_value = false)
+	public function getFill($compute = true)
 	{
-		if ( $raw_value )
+		if ( ! $compute )
 			return $this->fill;
 		
 		if ( $this->fill === null )
@@ -79,26 +79,26 @@ class GoogleChartData
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_styles
 	 */
-	public function setStyle($thickness, $dash_length = null, $space_length = null)
+	public function setStyle($thickness, $dash_length = false, $space_length = false)
 	{
 		$this->style = array(
-			'thickness' => $thickness,
-			'dash_length' => $dash_length,
-			'space_length' => $space_length
+			'thickness' => $thickness === null ? 2 : $thickness,
+			'dash_length' => $dash_length === null ? 1 : $dash_length,
+			'space_length' => $space_length === null ? false : $space_length
 		);
 
 		return $this;
 	}
 
-	public function getStyle($raw_value = false)
+	public function getStyle($compute = true)
 	{
-		if ( $raw_value )
+		if ( ! $compute )
 			return $this->style;
 
 		$str = $this->style['thickness'];
-		if ( $this->style['dash_length'] ) {
+		if ( $this->style['dash_length'] !== false ) {
 			$str .= ','.$this->style['dash_length'];
-			if  ( $this->style['space_length'] ) {
+			if  ( $this->style['space_length'] !== false ) {
 				$str .= ','.$this->style['space_length'];
 			}
 		}
