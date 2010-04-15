@@ -26,6 +26,13 @@ class GoogleChart
 {
 	const BASE_URL = 'http://chart.apis.google.com/chart';
 
+	const AUTOSCALE_OFF = 0;
+	const AUTOSCALE_Y_AXIS = 1;
+	const AUTOSCALE_VALUES = 2;
+
+	const GET = 0;
+	const POST = 1;
+
 	private $type = '';
 	private $width = '';
 	private $height = '';
@@ -35,9 +42,10 @@ class GoogleChart
 	private $grid_lines = null;
 	private $parameters = array();
 
+	private $autoscale = null;
 	private $autoscale_axis = null;
 
-	private $url = '';
+	private $query_method = null;
 
 	/**
 	 * Create a new chart.
@@ -53,7 +61,9 @@ class GoogleChart
 		$this->type = $type;
 		$this->width = $width;
 		$this->height = $height;
-		//~ $this->_tainted = true;
+
+		$this->setAutoscale(self::AUTOSCALE_Y_AXIS);
+		$this->setQueryMethod(self::POST);
 	}
 
 	public function __set($name, $value)
@@ -91,10 +101,16 @@ class GoogleChart
 	{
 		$this->axes[] = $axis;
 
-		// by default, we auto-scale data on the first y axis
+		// auto-scale data on the first y axis
 		if ( $axis->getName() == 'y' && $this->autoscale_axis === null )
 			$this->autoscale_axis = $axis;
 
+		return $this;
+	}
+
+	public function setAutoscale($autoscale)
+	{
+		$this->autoscale = $autoscale;
 		return $this;
 	}
 
@@ -161,7 +177,6 @@ class GoogleChart
 
 		$q = array_merge($q, $this->parameters);
 
-		//~ return urldecode(self::BASE_URL.'?'.http_build_query($q));
 		return $q;
 	}
 
@@ -171,18 +186,31 @@ class GoogleChart
 		$colors = array();
 		$styles = array();
 		$fills = array();
+		$scales = array();
+
+		$scale_needed = false;
 
 		$value_min = 0;
 		$value_max = 0;
 		foreach ( $this->data as $i => $d ) {
 			$values = $d->getValues();
-			$max = max($values);
-			$min = min($values);
-			if ( $max > $value_max ) {
-				$value_max = $max;
+			if ( $this->autoscale == self::AUTOSCALE_VALUES ) {
+				$max = max($values);
+				$min = min($values);
+				if ( $max > $value_max ) {
+					$value_max = $max;
+				}
+				if ( $min < $value_min ) {
+					$value_min = $min;
+				}
 			}
-			if ( $min < $value_min ) {
-				$value_min = $min;
+			elseif ( $this->autoscale == self::AUTOSCALE_OFF ) {
+				// register every values, just in case
+				$scales[] = $d->getScale();
+				// but do not trigger if not needed
+				if ( $d->hasCustomScale() ) {
+					$scale_needed = true;
+				}
 			}
 			$data[] = implode(',',$values);
 			$colors[] = $d->getColor();
@@ -198,12 +226,23 @@ class GoogleChart
 			$q['chls'] = implode('|',$styles);
 			
 			// autoscale
-			//~ $q['chds'] = $value_min.','.($value_max + round(10*$value_max/100));
-			if ( $this->autoscale_axis !== null ) {
-				$range = $this->autoscale_axis->getRange(false);
-				if ( $range !== null ) {
-					$q['chds'] = $range['start_val'].','.$range['end_val'];
-				}
+			switch ( $this->autoscale ) {
+				case self::AUTOSCALE_Y_AXIS:
+					if ( $this->autoscale_axis !== null ) {
+						$range = $this->autoscale_axis->getRange(false);
+						if ( $range !== null ) {
+							$q['chds'] = $range['start_val'].','.$range['end_val'];
+						}
+					}
+					break;
+				case self::AUTOSCALE_VALUES:
+					$q['chds'] = $value_min.','.$value_max;
+					break;
+				// if autoscale if off, then we compute manual scale
+				case self::AUTOSCALE_OFF:
+					if ( $scale_needed ) {
+						$q['chds'] = implode(',', $scales);
+					}
 			}
 		}
 		if ( isset($fills[0]) ) {
@@ -261,41 +300,42 @@ class GoogleChart
 		return $this;
 	}
 
-	public function getUrl($use_cache = true)
+	public function setQueryMethod($method)
 	{
-		if ( ! $this->url || ! $use_cache ) {
-			$this->url =  urldecode(self::BASE_URL.'?'.http_build_query($this->computeQuery()));
-		}
-		return $this->url;
+		if ( $method !== self::POST && $method !== self::GET )
+			throw new Exception(sprintf(
+				'Query method must be either POST or GET, "%s" given.',
+				$method
+			));
+		
+		$this->query_method = $method;
+		return $this;
 	}
 
-	public function validate()
+	/**
+	 * Returns the full URL.
+	 *
+	 * Use this method if you need to link Google's URL directly, or if you
+	 * prefer to use your own library to GET the chart.
+	 */
+	public function getUrl()
 	{
-		$url = $this->getUrl().'&chof=validate';
-		return file_get_contents($url);
+		$q = $this->computeQuery();
+		$url = self::BASE_URL.'?'.http_build_query($q);
+		return $url;
 	}
 
-	public function getChartImage($method = 'post')
+	/**
+	 * Returns the query parameters as an array.
+	 *
+	 * Use this method if you want to do the POST yourself.
+	 */
+	public function getQuery()
 	{
-		switch ( $method ) {
-			case 'get':
-				return file_get_contents($this->getUrl(false));
-			case 'post':
-				$context = stream_context_create(array(
-					'http' => array(
-						'method' => 'POST',
-						'content' => http_build_query($this->computeQuery())
-					)
-				));
-				$image = fpassthru(fopen(self::BASE_URL, 'r', false, $context));
-				break;
-			default:
-				throw new Exception(sprintf('Unknown $method "%s". Must be "get" or "post".', $method));
-		}
-		return $image;
+		return $this->computeQuery();
 	}
 
-	public function __toString()
+	public function toHtml()
 	{
 		$str = sprintf(
 			'<img src="%s" width="%d" height="%d" alt="" />',
@@ -304,7 +344,68 @@ class GoogleChart
 			$this->height
 		);
 		return $str;
-		
-		
 	}
+
+	/**
+	 * Query Google Chart and returns the image.
+	 *
+	 * @see setQueryMethod
+	 */
+	public function getImage()
+	{
+		$image = null;
+
+		switch ( $this->query_method ) {
+			case self::GET:
+				$url = $this->getUrl();
+				$image = file_get_contents($url);
+				break;
+			case self::POST:
+				$image = self::post($this->computeQuery());
+				break;
+		}
+
+		return $image;
+	}
+
+	public function __toString()
+	{
+		return $this->getImage();
+	}
+
+	/**
+	 * Utility function. Performs a POST.
+	 */
+	static private function post(array $q = array())
+	{
+		$context = stream_context_create(array(
+			'http' => array(
+				'method' => 'POST',
+				'header'  => 'Content-type: application/x-www-form-urlencoded',
+				'content' => http_build_query($q)
+			)
+		));
+		return file_get_contents(self::BASE_URL, false, $context);
+	}
+
+/* --------------------------------------------------------------------------
+ * Debug
+ * -------------------------------------------------------------------------- */
+ 
+	public function getValidationUrl()
+	{
+		$q = $this->computeQuery();
+		$q['chof'] = 'validate';
+		$url = self::BASE_URL.'?'.http_build_query($q);
+		return $url;
+	}
+
+	public function validate()
+	{
+		$q = $this->computeQuery();
+		$q['chof'] = 'validate';
+		return self::post($q);
+	}
+
+
 }

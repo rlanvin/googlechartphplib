@@ -19,6 +19,9 @@ class GoogleChartData
 	private $color = null;
 	private $style = null;
 	private $fill = null;
+	
+	private $autoscale = true;
+	private $scale = null;
 
 	public function __construct(array $values)
 	{
@@ -31,6 +34,42 @@ class GoogleChartData
 	public function getValues()
 	{
 		return $this->values;
+	}
+
+	public function setautoscale($autoscale)
+	{
+		$this->autoscale = $autoscale;
+		return $this;
+	}
+
+	public function setScale($min, $max)
+	{
+		$this->scale = array(
+			'min' => $min,
+			'max' => $max
+		);
+		return $this;
+	}
+
+	public function getScale($compute = true)
+	{
+		if ( ! $compute )
+			return $this->scale;
+
+		if ( $this->autoscale == true ) {
+			return min($this->values).','.max($this->values);
+		}
+		
+		if ( $this->scale == null ) {
+			return '0,100';
+		}
+		
+		return $this->scale['min'].','.$this->scale['max'];
+	}
+
+	public function hasCustomScale()
+	{
+		return $this->scale !== null;
 	}
 
 	/**
