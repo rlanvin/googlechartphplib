@@ -10,6 +10,9 @@
  * For the full copyright and license information, please view the LICENSE file.
  */
 
+require 'GoogleChartData.class.php';
+require 'GoogleChartAxis.class.php';
+
 /**
  * A chart.
  *
