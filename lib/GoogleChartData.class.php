@@ -16,10 +16,11 @@
 class GoogleChartData
 {
 	private $values = null;
+	private $legend = null;
 	private $color = null;
 	private $style = null;
 	private $fill = null;
-	
+
 	private $autoscale = true;
 	private $scale = null;
 
@@ -70,6 +71,26 @@ class GoogleChartData
 	public function hasCustomScale()
 	{
 		return $this->scale !== null;
+	}
+
+	/**
+	 * Chart Legend (chdl)
+	 *
+	 */
+	public function setLegend($legend)
+	{
+		$this->legend = $legend;
+		return $this;
+	}
+
+	public function getLegend()
+	{
+		return $this->legend;
+	}
+
+	public function hasCustomLegend()
+	{
+		return $this->legend !== null;
 	}
 
 	/**

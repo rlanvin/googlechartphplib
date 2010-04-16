@@ -48,6 +48,10 @@ class GoogleChart
 	private $autoscale = null;
 	private $autoscale_axis = null;
 
+	private $legend_position = null;
+	private $legend_label_order = null;
+	private $legend_skip_empty = true;
+
 	private $query_method = null;
 
 	/**
@@ -117,6 +121,43 @@ class GoogleChart
 		return $this;
 	}
 
+	public function setLegendPosition($position)
+	{
+		$this->legend_position = $position;
+		return $this;
+	}
+	
+	public function setLegendLabelOrder($label_order)
+	{
+		$this->legend_label_order = $label_order;
+		return $this;
+	}
+
+	public function setLegendSkipEmpty($skip_empty)
+	{
+		$this->legend_skip_empty = $skip_empty;
+		return $this;
+	}
+
+	public function getLegendOptions()
+	{
+		$str = '';
+		if ( $this->legend_position !== null ) {
+			$str .= $this->legend_position;
+		}
+		if ( $this->legend_skip_empty === true ) {
+			$str .= 's';
+		}
+		if ( $this->legend_label_order !== null ) {
+			$str .= '|'.$this->legend_label_order;
+		}
+		return $str;
+	}
+
+	public function hasCustomLegendOptions()
+	{
+		return $this->legend_skip_empty === true || $this->legend_position !== null || $this->legend_label_order !== null;
+	}
 	/**
 	 * Specify solid or dotted grid lines on the chart. (chg)
 	 *
@@ -189,9 +230,12 @@ class GoogleChart
 		$colors = array();
 		$styles = array();
 		$fills = array();
-		$scales = array();
 
+		$scales = array();
 		$scale_needed = false;
+
+		$legends = array();
+		$legends_needed = false;
 
 		$value_min = 0;
 		$value_max = 0;
@@ -222,6 +266,11 @@ class GoogleChart
 			if ( $tmp ) {
 				$fills[] = sprintf($tmp, $i);
 			}
+			
+			$legends[] = $d->getLegend();
+			if ( $d->hasCustomLegend() ) {
+				$legends_needed = true;
+			}
 		}
 		if ( isset($data[0]) ) {
 			$q['chd'] = 't:'.implode('|',$data);
@@ -246,6 +295,14 @@ class GoogleChart
 					if ( $scale_needed ) {
 						$q['chds'] = implode(',', $scales);
 					}
+			}
+			
+			// labels
+			if ( $legends_needed ) {
+				$q['chdl'] = implode('|',$legends);
+				if ( $this->hasCustomLegendOptions() ) {
+					$q['chdlp'] = $this->getLegendOptions();
+				}
 			}
 		}
 		if ( isset($fills[0]) ) {

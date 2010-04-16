@@ -35,10 +35,10 @@ $y_axis->setStyle(null, null, GoogleChartAxis::ALIGN_RIGHT, GoogleChartAxis::DRA
 //~ $chart->chxs = '1,336699,12,-1';
 
 
-echo $chart->getUrl().'<br />';
+var_dump($chart->getQuery());
 //~ header('Content-Type: image/png');
 //~ echo $chart->getChartImage();
 
-echo $chart;
+echo $chart->toHtml();
 
 echo $chart->validate();
