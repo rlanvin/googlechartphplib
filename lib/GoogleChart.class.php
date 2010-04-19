@@ -36,25 +36,23 @@ class GoogleChart
 	const GET = 0;
 	const POST = 1;
 
-	private $type = '';
-	private $width = '';
-	private $height = '';
+	protected $type = '';
+	protected $width = '';
+	protected $height = '';
 	
-	private $data = array();
-	private $axes = array();
-	private $grid_lines = null;
-	private $parameters = array();
+	protected $data = array();
+	protected $axes = array();
+	protected $grid_lines = null;
+	protected $parameters = array();
 
-	private $area = null;
+	protected $autoscale = null;
+	protected $autoscale_axis = null;
 
-	private $autoscale = null;
-	private $autoscale_axis = null;
+	protected $legend_position = null;
+	protected $legend_label_order = null;
+	protected $legend_skip_empty = true;
 
-	private $legend_position = null;
-	private $legend_label_order = null;
-	private $legend_skip_empty = true;
-
-	private $query_method = null;
+	protected $query_method = null;
 
 	/**
 	 * Create a new chart.
@@ -203,17 +201,6 @@ class GoogleChart
 		return $str;
 	}
 
-	/**
-	 * Geographical Area (chtm). Only for Map charts (type=t)
-	 */
-	public function setArea($area)
-	{
-		if ( $this->type !== 't' )
-			throw new Exception('setArea is only supported for Map Charts');
-
-		$this->area = $area;
-	}
-
 /* --------------------------------------------------------------------------
  * URL Computation
  * -------------------------------------------------------------------------- */
@@ -225,21 +212,20 @@ class GoogleChart
 			'chs' => $this->width.'x'.$this->height
 		);
 
-		if ( $this->grid_lines ) {
-			$q['chg'] = $this->getGridLines();
-		}
-
-		if ( $this->type == 't' ) {
-			$this->computeMapData($q);
-		}
-		else {
-			$this->computeData($q);
-			$this->computeAxes($q);
-		}
+		$this->compute($q);
 
 		$q = array_merge($q, $this->parameters);
 
 		return $q;
+	}
+
+	protected function compute(array & $q)
+	{
+		if ( $this->grid_lines ) {
+			$q['chg'] = $this->getGridLines();
+		}
+		$this->computeData($q);
+		$this->computeAxes($q);
 	}
 
 	protected function computeData(array & $q)
@@ -376,16 +362,6 @@ class GoogleChart
 		}
 
 		return $this;
-	}
-
-	protected function computeMapData(array & $q)
-	{
-		if ( ! isset($this->data[0]) )
-			throw new Exception('Map Chart needs one data serie');
-
-		$q['chd'] = 't:'.implode(',',$this->data[0]->getValues());
-		$q['chld'] = implode('',$this->data[0]->getKeys());
-		$q['chtm'] = $this->area;
 	}
 
 	public function setQueryMethod($method)
