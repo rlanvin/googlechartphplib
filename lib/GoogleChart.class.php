@@ -10,8 +10,8 @@
  * For the full copyright and license information, please view the LICENSE file.
  */
 
-require 'GoogleChartData.class.php';
-require 'GoogleChartAxis.class.php';
+include_once 'GoogleChartData.class.php';
+include_once 'GoogleChartAxis.class.php';
 
 /**
  * A chart.
@@ -44,6 +44,8 @@ class GoogleChart
 	private $axes = array();
 	private $grid_lines = null;
 	private $parameters = array();
+
+	private $area = null;
 
 	private $autoscale = null;
 	private $autoscale_axis = null;
@@ -201,6 +203,17 @@ class GoogleChart
 		return $str;
 	}
 
+	/**
+	 * Geographical Area (chtm). Only for Map charts (type=t)
+	 */
+	public function setArea($area)
+	{
+		if ( $this->type !== 't' )
+			throw new Exception('setArea is only supported for Map Charts');
+
+		$this->area = $area;
+	}
+
 /* --------------------------------------------------------------------------
  * URL Computation
  * -------------------------------------------------------------------------- */
@@ -216,8 +229,13 @@ class GoogleChart
 			$q['chg'] = $this->getGridLines();
 		}
 
-		$this->computeData($q);
-		$this->computeAxes($q);
+		if ( $this->type == 't' ) {
+			$this->computeMapData($q);
+		}
+		else {
+			$this->computeData($q);
+			$this->computeAxes($q);
+		}
 
 		$q = array_merge($q, $this->parameters);
 
@@ -360,6 +378,16 @@ class GoogleChart
 		return $this;
 	}
 
+	protected function computeMapData(array & $q)
+	{
+		if ( ! isset($this->data[0]) )
+			throw new Exception('Map Chart needs one data serie');
+
+		$q['chd'] = 't:'.implode(',',$this->data[0]->getValues());
+		$q['chld'] = implode('',$this->data[0]->getKeys());
+		$q['chtm'] = $this->area;
+	}
+
 	public function setQueryMethod($method)
 	{
 		if ( $method !== self::POST && $method !== self::GET )
@@ -445,6 +473,7 @@ class GoogleChart
 				'content' => http_build_query($q)
 			)
 		));
+
 		return file_get_contents(self::BASE_URL, false, $context);
 	}
 

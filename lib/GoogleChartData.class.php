@@ -37,6 +37,11 @@ class GoogleChartData
 		return $this->values;
 	}
 
+	public function getKeys()
+	{
+		return array_keys($this->values);
+	}
+
 	public function setautoscale($autoscale)
 	{
 		$this->autoscale = $autoscale;
@@ -165,4 +170,11 @@ class GoogleChartData
 		return $str;
 	}
 
+	/**
+	 * Value Markers (chm)
+	 */
+	public function setMarkers()
+	{
+	
+	}
 }
