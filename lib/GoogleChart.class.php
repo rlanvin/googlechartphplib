@@ -52,6 +52,8 @@ class GoogleChart
 	protected $legend_label_order = null;
 	protected $legend_skip_empty = true;
 
+	protected $background = null;
+
 	protected $query_method = null;
 
 	/**
@@ -201,6 +203,21 @@ class GoogleChart
 		return $str;
 	}
 
+	public function setBackground($color, $transparency = null)
+	{
+		$fill_type = 'bg';
+
+		if ( $transparency !== null ) {
+			$fill_type = 'a';
+			// 100% = 255 
+			$transparency = hexdec(round($transparency * 255 / 100));
+			$color = $color.$transparency;
+		}
+
+		$this->background = $fill_type.',s,'.$color;
+		return $this;
+	}
+
 /* --------------------------------------------------------------------------
  * URL Computation
  * -------------------------------------------------------------------------- */
@@ -223,6 +240,9 @@ class GoogleChart
 	{
 		if ( $this->grid_lines ) {
 			$q['chg'] = $this->getGridLines();
+		}
+		if ( $this->background ) {
+			$q['chf'] = $this->background;
 		}
 		$this->computeData($q);
 		$this->computeAxes($q);

@@ -1,6 +1,18 @@
 <?php
 
-
+/**
+ * This file is part of GoogleChart PHP library.
+ *
+ * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
+ *
+ * Licensed under the MIT license.
+ *
+ * For the full copyright and license information, please view the LICENSE file.
+ */
+ 
+/**
+ * A Map Chart.
+ */
 class GoogleChartMap extends GoogleChart
 {
 	const MAX_WIDTH = 440;
@@ -27,7 +39,11 @@ class GoogleChartMap extends GoogleChart
 		$q['chd'] = 't:'.implode(',',$this->data[0]->getValues());
 		$q['chld'] = implode('',$this->data[0]->getKeys());
 		$q['chtm'] = $this->area;
-		
+
+		if ( $this->background ) {
+			$q['chf'] = $this->background;
+		}
+
 		if ( $this->colors ) 
 			$q['chco'] = $this->getColors();
 	}
