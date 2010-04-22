@@ -160,6 +160,7 @@ class GoogleChart
 	{
 		return $this->legend_skip_empty === true || $this->legend_position !== null || $this->legend_label_order !== null;
 	}
+
 	/**
 	 * Specify solid or dotted grid lines on the chart. (chg)
 	 *
@@ -168,54 +169,53 @@ class GoogleChart
 	public function setGridLines($x_axis_step_size, $y_axis_step_size, $dash_length = false,
 	                             $space_length = false, $x_offset = false, $y_offset = false)
 	{
-		$this->grid_lines = array(
-			'x_axis_step_size' => $x_axis_step_size,
-			'y_axis_step_size' => $y_axis_step_size,
-			'dash_length' => $dash_length,
-			'space_length' => $space_length,
-			'x_offset' => $x_offset,
-			'y_offset' => $y_offset
-		);
-		return $this;
-	}
-
-	public function getGridLines($compute = true)
-	{
-		if ( ! $compute )
-			return $this->grid_lines;
-
-		if ( $this->grid_lines === null )
-			return null;
-
-		$str = $this->grid_lines['x_axis_step_size'].','.$this->grid_lines['y_axis_step_size'];
-		if ( $this->grid_lines['dash_length'] !== false ) {
-			$str .= ','.$this->grid_lines['dash_length'];
-			if ( $this->grid_lines['space_length'] !== false ) {
-				$str .= ','.$this->grid_lines['space_length'];
-				if ( $this->grid_lines['x_offset'] !== false ) {
-					$str .= ','.$this->grid_lines['x_offset'];
-					if ( $this->grid_lines['y_offset'] !== false ) {
-						$str .= ','.$this->grid_lines['y_offset'];
+		$this->grid_lines = $x_axis_step_size.','.$y_axis_step_size;
+		if ( $dash_length !== false ) {
+			$this->grid_lines .= ','.$dash_length;
+			if ( $space_length !== false ) {
+				$this->grid_lines .= ','.$space_length;
+				if ( $x_offset !== false ) {
+					$this->grid_lines .= ','.$x_offset;
+					if ( $y_offset !== false ) {
+						$this->grid_lines .= ','.$y_offset;
 					}
 				}
 			}
 		}
-		return $str;
+		return $this;
 	}
 
-	public function setBackground($color, $transparency = null)
+	public function setBackground($color, $opacity = null)
 	{
 		$fill_type = 'bg';
 
-		if ( $transparency !== null ) {
+		if ( $opacity !== null ) {
 			$fill_type = 'a';
-			// 100% = 255 
-			$transparency = hexdec(round($transparency * 255 / 100));
-			$color = $color.$transparency;
+			// 100% = 255
+			// 0% = 0
+			$opacity = str_pad(dechex(round($opacity * 255 / 100)), 2, 0, STR_PAD_LEFT);
+			$color = $color.$opacity;
 		}
 
-		$this->background = $fill_type.',s,'.$color;
+		if ( ! $this->background )
+			$this->background = array();
+
+		$this->background['bg'] = $fill_type.',s,'.$color;
 		return $this;
+	}
+	
+	public function setChartAreaBackground($color)
+	{
+		if ( ! $this->background )
+			$this->background = array();
+
+		$this->background['c'] = 'c,s,'.$color;
+	}
+
+	public function setGradientBackground()
+	{
+		$args = func_get_args();
+		
 	}
 
 /* --------------------------------------------------------------------------
@@ -239,11 +239,12 @@ class GoogleChart
 	protected function compute(array & $q)
 	{
 		if ( $this->grid_lines ) {
-			$q['chg'] = $this->getGridLines();
+			$q['chg'] = $this->grid_lines;
 		}
 		if ( $this->background ) {
-			$q['chf'] = $this->background;
+			$q['chf'] = implode('|',$this->background);
 		}
+	
 		$this->computeData($q);
 		$this->computeAxes($q);
 	}
@@ -345,9 +346,8 @@ class GoogleChart
 		$styles = array();
 		foreach ( $this->axes as $i => $a ) {
 			$axes[] = $a->getName();
-			$tmp = $a->getLabels();
-			if ( $tmp !== null ) {
-				$labels[] = sprintf($tmp, $i);
+			if ( $a->hasCustomLabels() ) {
+				$labels[] = sprintf($a->getLabels(), $i);
 			}
 
 			$tmp = $a->getRange();

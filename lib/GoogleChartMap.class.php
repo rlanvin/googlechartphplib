@@ -24,9 +24,9 @@ class GoogleChartMap extends GoogleChart
 	public function __construct($width, $height)
 	{
 		if ( $width > self::MAX_WIDTH )
-			throw new Exception(sprintf('Max width for Map Chart is %d.', self::MAX_WIDTH));
+			throw new InvalidArgumentException(sprintf('Max width for Map Chart is %d.', self::MAX_WIDTH));
 		if ( $height > self::MAX_HEIGHT )
-			throw new Exception(sprintf('Max height for Map Chart is %d.', self::MAX_HEIGHT));
+			throw new InvalidArgumentException(sprintf('Max height for Map Chart is %d.', self::MAX_HEIGHT));
 		
 		parent::__construct('t', $width, $height);
 	}

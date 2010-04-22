@@ -63,6 +63,11 @@ class GoogleChartAxis
 		return '%d:|'.implode('|',$this->labels);
 	}
 
+	public function hasCustomLabels()
+	{
+		return $this->labels !== null;
+	}
+
 	/**
 	 * Axis ranges (chxr).
 	 *
