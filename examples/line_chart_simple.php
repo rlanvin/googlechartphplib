@@ -1,6 +1,6 @@
 <?php
 
-require('../lib/GoogleChart.class.php');
+require('../lib/GoogleChart.php');
 
 $values = array();
 for ($i = 0; $i <= 100; $i += 1) {

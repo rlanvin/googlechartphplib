@@ -1,6 +1,6 @@
 <?php
 
-/**
+/** @file
  * This file is part of GoogleChart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
@@ -10,6 +10,8 @@
  * For the full copyright and license information, please view the LICENSE file.
  */
  
+require_once 'GoogleChart.php';
+
 /**
  * A Map Chart.
  */
@@ -40,8 +42,8 @@ class GoogleChartMap extends GoogleChart
 		$q['chld'] = implode('',$this->data[0]->getKeys());
 		$q['chtm'] = $this->area;
 
-		if ( $this->background ) {
-			$q['chf'] = $this->background;
+		if ( $this->fills ) {
+			$q['chf'] = $this->fills;
 		}
 
 		if ( $this->colors ) 

@@ -1,8 +1,8 @@
 <?php
 
-require('../lib/GoogleChart.class.php');
-require('../lib/GoogleChartData.class.php');
-require('../lib/GoogleChartAxis.class.php');
+require('../lib/GoogleChart.php');
+require('../lib/GoogleChartData.php');
+require('../lib/GoogleChartAxis.php');
 
 $chart = new GoogleChart('lc', 500, 200);
 

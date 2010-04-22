@@ -1,6 +1,6 @@
 <?php
 
-/**
+/** @file
  * This file is part of GoogleChart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>

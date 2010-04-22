@@ -1,6 +1,6 @@
 <?php
 
-/**
+/** @file
  * This file is part of GoogleChart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
@@ -24,17 +24,38 @@ class GoogleChartAxis
 	const DRAW_TICK = 't';
 	const DRAW_BOTH = 'lt';
 
+	/**
+	 * @var string Name of the axis
+	 */
+	private $name = null;
+	/**
+	 * @var array
+	 */
 	private $labels = null;
-	private $name = '';
+
 	private $range = null;
 	private $tick_marks = null;
 	private $style = null;
 
+	/**
+	 * Create a new axis.
+	 *
+	 * @param string $name The name of the axis. Supported axis are 'x', 'y', 't' (top) or 'r' (right).
+	 */
 	public function __construct($name)
 	{
+		if ( ! ($name === 'x' || $name === 'y' || $name === 't' || $name === 'r') ) {
+			throw new InvalidArgumentException('Axis names must be x, y, t or r.');
+		}
+
 		$this->name = $name;
 	}
 
+	/**
+	 * Returns the name.
+	 *
+	 * @return string
+	 */
 	public function getName()
 	{
 		return $this->name;

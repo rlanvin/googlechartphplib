@@ -1,6 +1,6 @@
 <?php
 
-require('../lib/GoogleChart.class.php');
+require('../lib/GoogleChart.php');
 
 $values = array(
 	array(),
@@ -18,6 +18,10 @@ for ($i = 0; $i <= $n; $i += 1) {
 $chart = new GoogleChart('lc', 600, 300);
 $chart->setGridLines(10,10);
 $chart->setLegendPosition('r');
+$chart->setFill('ffffcc');
+//~ $chart->setFill('ccffee', GoogleChart::CHART_AREA);
+$chart->setGradientFill(45, array('cccccc', 'ffffff', 'cccccc'), GoogleChart::CHART_AREA);
+//~ $chart->setOpacity(100);
 
 $line = new GoogleChartData($values[0]);
 $line->setLegend('Us');
@@ -39,8 +43,7 @@ $chart->addAxis($y_axis);
 $x_axis = new GoogleChartAxis('x');
 $chart->addAxis($x_axis);
 
-
-if ( isset($__GET['debug']) ) {
+if ( isset($_GET['debug']) ) {
 	var_dump($chart->getQuery());
 	echo $chart->validate();
 	echo $chart->toHtml();

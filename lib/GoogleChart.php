@@ -1,6 +1,6 @@
 <?php
 
-/**
+/** @file
  * This file is part of GoogleChart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
@@ -10,20 +10,34 @@
  * For the full copyright and license information, please view the LICENSE file.
  */
 
-include_once 'GoogleChartData.class.php';
-include_once 'GoogleChartAxis.class.php';
+include_once 'GoogleChartData.php';
+include_once 'GoogleChartAxis.php';
 
 /**
- * A chart.
+ * This class represents a chart.
+ *
+ * When creating a new chart, you need to specify 3 things:
+ * - type of the chart (see http://code.google.com/apis/chart/docs/gallery/chart_gall.html)
+ * - width
+ * - height
+ *
+ * Then you need to add data to that chart using GoogleChartData class.
+ *
+ * Depending on the type of chart, you can also add one or more axis using GoogleChartAxis class.
+ *
+ * \par Work around for unimplemented features
  *
  * You can override any parameter by setting its value in the class.
- * For example, to specify the background, use:
- * <code>
- * $chart->chf = 'b,s,cccccc';
- * </code>
+ * For example, to following code will override the background:
  *
- * You can use this method for working with features that are
- * not implemented in the library.
+ * \code
+ *   $chart = new GoogleChart('lc', 500, 200);
+ *   $chart->chf = 'b,s,cccccc';
+ *   var_dump($chart->getQuery());
+ * \endcode
+ *
+ * You can use this method for working with features that are currently
+ * not implemented in the library (or buggy).
  */
 class GoogleChart
 {
@@ -35,6 +49,9 @@ class GoogleChart
 
 	const GET = 0;
 	const POST = 1;
+
+	const BACKGROUND = 'bg';
+	const CHART_AREA = 'c';
 
 	protected $type = '';
 	protected $width = '';
@@ -52,16 +69,17 @@ class GoogleChart
 	protected $legend_label_order = null;
 	protected $legend_skip_empty = true;
 
-	protected $background = null;
+	protected $fills = null;
 
 	protected $query_method = null;
 
 	/**
 	 * Create a new chart.
 	 *
-	 * @param string $type Google chart type.
-	 * @param int $width
-	 * @param int $height
+	 * @param $type (string)
+	 *   Google chart type.
+	 * @param $width (int)
+	 * @param $height (int)
 	 *
 	 * @see http://code.google.com/apis/chart/docs/gallery/chart_gall.html
 	 */
@@ -91,8 +109,9 @@ class GoogleChart
 	}
 
 	/**
-	 * Add a data serie.
+	 * Add a data serie to the chart.
 	 *
+	 * @param $data (GoogleChartData)
 	 * @see GoogleChartData
 	 */
 	public function addData(GoogleChartData $data)
@@ -102,8 +121,9 @@ class GoogleChart
 	}
 
 	/**
-	 * Add a visible axis.
+	 * Add a visible axis to the chart.
 	 *
+	 * @param $axis (GoogleChartAxis)
 	 * @see GoogleChartAxis
 	 */
 	public function addAxis(GoogleChartAxis $axis)
@@ -117,18 +137,63 @@ class GoogleChart
 		return $this;
 	}
 
+	/**
+	 * Set autoscaling mode.
+	 *
+	 *
+	 */
 	public function setAutoscale($autoscale)
 	{
+		if ( ! ($autoscale === self::AUTOSCALE_OFF || $autoscale === self::AUTOSCALE_Y_AXIS || $autoscale === self::AUTOSCALE_VALUES) ) {
+			throw new InvalidArgumentException('Invalid autoscale mode.');
+		}
+	
 		$this->autoscale = $autoscale;
 		return $this;
 	}
 
+
+/** 
+ * @name Chart Legend Text and Style (chdl, chdlp)
+ */
+//@{
+
+	/**
+	 * Set position of the legend box (chdlp).
+	 *
+	 * The parameter is not checked so you can pass whatever you want. This way,
+	 * if the Google Chart API evolves, this library will still works. However,
+	 * be warned that you chart may not be displayed as expected if you pass wrong
+	 * parameter.
+	 *
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_legend
+	 *
+	 * @param $position (string)
+	 *   One of the following: 'b', 'bv', 't', 'tv', 'r', 'l'
+	 *   (read Google Chart Documentation for details).
+	 * @return $this
+	 */
 	public function setLegendPosition($position)
 	{
 		$this->legend_position = $position;
 		return $this;
 	}
 	
+	/**
+	 * Set labels order inside the legend box (chdlp).
+	 *
+	 * The parameter is not checked so you can pass whatever you want. This way,
+	 * if the Google Chart API evolves, this library will still works. However,
+	 * be warned that you chart may not be displayed as expected if you pass wrong
+	 * parameter.
+	 *
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_legend
+	 *
+	 * @param $label_order (string)
+	 *   One of the following: 'l', 'r', 'a', or a list of numbers
+	 *   separated by commas (read Google Chart Documentation for details).
+	 * @return $this
+	 */
 	public function setLegendLabelOrder($label_order)
 	{
 		$this->legend_label_order = $label_order;
@@ -161,6 +226,8 @@ class GoogleChart
 		return $this->legend_skip_empty === true || $this->legend_position !== null || $this->legend_label_order !== null;
 	}
 
+//@}
+
 	/**
 	 * Specify solid or dotted grid lines on the chart. (chg)
 	 *
@@ -185,38 +252,97 @@ class GoogleChart
 		return $this;
 	}
 
-	public function setBackground($color, $opacity = null)
+/** 
+ * @name Gradient, Solid and Stripped Fills (chf)
+ */
+//@{
+	public function setFill($color, $area = self::BACKGROUND)
 	{
-		$fill_type = 'bg';
-
-		if ( $opacity !== null ) {
-			$fill_type = 'a';
-			// 100% = 255
-			// 0% = 0
-			$opacity = str_pad(dechex(round($opacity * 255 / 100)), 2, 0, STR_PAD_LEFT);
-			$color = $color.$opacity;
+		if ( $area != self::BACKGROUND && $area != self::CHART_AREA ) {
+			throw new InvalidArgumentException('Invalid fill area.');
 		}
 
-		if ( ! $this->background )
-			$this->background = array();
-
-		$this->background['bg'] = $fill_type.',s,'.$color;
+		$this->fills[$area] = $area.',s,'.$color;
 		return $this;
 	}
-	
-	public function setChartAreaBackground($color)
-	{
-		if ( ! $this->background )
-			$this->background = array();
 
-		$this->background['c'] = 'c,s,'.$color;
+	public function setOpacity($opacity)
+	{
+		if ( $opacity < 0 || $opacity > 100 ) {
+			throw new InvalidArgumentException('Invalid opacity (must be between 0 and 100).');
+		}
+
+		// 100% = 255
+		$opacity = str_pad(dechex(round($opacity * 255 / 100)), 8, 0, STR_PAD_LEFT);
+		
+		// opacity doesn't work with other backgrounds
+		$this->fills[self::BACKGROUND] = 'a,s,'.$opacity;
+		
+		return $this;
 	}
 
-	public function setGradientBackground()
+	/**
+	 * Gradient fill.
+	 *
+	 * @param $angle (int)
+	 *  A number specifying the angle of the gradient
+	 *  from 0 (horizontal) to 90 (vertical).
+	 * @param $colors (array)
+	 *  An array of color of the fill. Each color can be a
+	 *  string in RRGGBB hexadecimal format, or an array of two values: RRGGBB
+	 *  color, and color centerpoint.
+	 *
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_gradient_fills
+	 */
+	public function setGradientFill($angle, array $colors, $area = self::BACKGROUND)
 	{
-		$args = func_get_args();
+		if ( $angle < 0 || $angle > 90 ) {
+			throw new InvalidArgumentException('Invalid angle (must be between 0 and 90).');
+		}
+
+		if ( ! isset($colors[1]) ) {
+			throw new InvalidArgumentException('You must specify at least 2 colors to create a gradient fill.');
+		}
+
+		if ( $area != self::BACKGROUND && $area != self::CHART_AREA ) {
+			throw new InvalidArgumentException('Invalid area.');
+		}
+
+		$tmp = array();
+		$i = 0;
+		$n = sizeof($colors);
+		for ( $i = 0; $i < $n; $i++ ) {
+			$centerpoint = null;
+			$color = null;
+
+			if ( is_array($colors[$i]) ) {
+				$c = $colors[$i];
+				if ( ! isset($c[0]) ) {
+					throw new InvalidArgumentException('Each color must be an array of the color code in RRGGBB and the color centerpoint.');
+				}
+				$color = $c[0];
+				if ( isset($c[1]) ) {
+					$centerpoint = $c[1];
+				}
+			}
+			else {
+				$color = $colors[$i];
+			}
+			// no color centerpoint, try to calculate a good one:
+			if ( ! $centerpoint ) {
+				$centerpoint = $i / ($n-1);
+			}
+			$tmp[] = $color.','.round($centerpoint,2);
+		}
+		
+		$this->fills[$area] = $area.',lg,'.$angle.','.implode(',',$tmp);
+	}
+	
+	public function setStripedFill($angle, array $colors, $area = self::BACKGROUND)
+	{
 		
 	}
+//@}
 
 /* --------------------------------------------------------------------------
  * URL Computation
@@ -241,8 +367,8 @@ class GoogleChart
 		if ( $this->grid_lines ) {
 			$q['chg'] = $this->grid_lines;
 		}
-		if ( $this->background ) {
-			$q['chf'] = implode('|',$this->background);
+		if ( $this->fills ) {
+			$q['chf'] = implode('|',$this->fills);
 		}
 	
 		$this->computeData($q);
