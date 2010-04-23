@@ -159,7 +159,7 @@ class GoogleChart
 //@{
 
 	/**
-	 * Set position of the legend box (chdlp).
+	 * Set position of the legend box (@c chdlp).
 	 *
 	 * The parameter is not checked so you can pass whatever you want. This way,
 	 * if the Google Chart API evolves, this library will still works. However,
