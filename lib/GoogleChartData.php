@@ -15,23 +15,77 @@
  */
 class GoogleChartData
 {
-	private $values = null;
-	private $legend = null;
-	private $color = null;
-	private $style = null;
-	private $fill = null;
+	/**
+	 * @var array An array of the values of the data serie.
+	 */
+	protected $values = null;
+	/**
+	 * @var string The name of the data serie to be displayed as legend.
+	 */
+	protected $legend = null;
+	/**
+	 * @var mixed Color of the data serie (string or array)
+	 */
+	protected $color = null;
+	/**
+	 * @var array Style of the data serie.
+	 */
+	protected $style = null;
+	/**
+	 * @var string Line fill values (to fill area below a line).
+	 */
+	protected $fill = null;
+	/**
+	 * @var bool Wether to calculate scale automatically or not.
+	 */
+	protected $autoscale = true;
+	/**
+	 * @var array The scale, as specified by the user with setScale
+	 */
+	protected $scale = null;
+	
+	/**
+	 * @var int Holds the index of the data serie in the chart. Null if not added.
+	 */
+	protected $index = null;
 
-	private $autoscale = true;
-	private $scale = null;
-
+	/**
+	 * Create a new data serie.
+	 */
 	public function __construct(array $values)
 	{
 		$this->values = $values;
 		
-		$this->setColor('336699');
+		$this->setColor('4D89F9');
 		$this->setStyle(2);
 	}
 	
+	/**
+	 * Set the index of the data serie in the chart.
+	 *
+	 * @note For internal use only.
+	 * @param $index (int)
+	 * @return $this
+	 */
+	public function setIndex($index)
+	{
+		if ( ! is_int($index) )
+			throw new InvalidArgumentException('Invalid index (must be an integer)');
+
+		$this->index = (int) $index;
+		return $this;
+	}
+
+	public function getIndex()
+	{
+		return $this->index;
+	}
+
+	public function hasIndex()
+	{
+		return $this->index !== null;
+	}
+
 	public function getValues()
 	{
 		return $this->values;
@@ -99,7 +153,10 @@ class GoogleChartData
 	}
 
 	/**
-	 * Color (chco).
+	 * Color (@c chco).
+	 *
+	 * Set the serie color.
+	 * Color can be an array for bar charts.
 	 *
 	 * http://code.google.com/apis/chart/docs/chart_params.html#gcharts_series_color
 	 */
@@ -111,13 +168,16 @@ class GoogleChartData
 
 	public function getColor()
 	{
+		if ( is_array($this->color) )
+			return implode('|',$this->color);
+
 		return $this->color;
 	}
 
 	/**
 	 * Line fill (chm)
 	 *
-	 * @http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_fills
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_fills
 	 */
 	public function setFill($color)
 	{

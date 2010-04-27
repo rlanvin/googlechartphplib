@@ -1,6 +1,6 @@
 <?php
 
-require('../lib/GoogleChart.php');
+require '../lib/GoogleChart.php';
 
 $sin = array();
 $cos = array();

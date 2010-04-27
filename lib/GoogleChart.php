@@ -12,6 +12,7 @@
 
 include_once 'GoogleChartData.php';
 include_once 'GoogleChartAxis.php';
+include_once 'GoogleChartMarker.php';
 
 /**
  * This class represents a chart.
@@ -24,6 +25,10 @@ include_once 'GoogleChartAxis.php';
  * Then you need to add data to that chart using GoogleChartData class.
  *
  * Depending on the type of chart, you can also add one or more axis using GoogleChartAxis class.
+ *
+ * \par Line chart
+ *
+ * @include line_chart.php
  *
  * \par Work around for unimplemented features
  *
@@ -57,10 +62,24 @@ class GoogleChart
 	protected $width = '';
 	protected $height = '';
 	
+	/**
+	 * @var array List of all data series (GoogleChartData)
+	 */
 	protected $data = array();
+	/**
+	 * @var array List of all axes (GoogleChartAxis)
+	 */
 	protected $axes = array();
+	/**
+	 * @var array List of all markers (GoogleChartMarker)
+	 */
+	protected $markers = array();
+
 	protected $grid_lines = null;
 	protected $parameters = array();
+	
+	protected $title = null;
+	protected $title_style = null;
 
 	protected $autoscale = null;
 	protected $autoscale_axis = null;
@@ -116,7 +135,11 @@ class GoogleChart
 	 */
 	public function addData(GoogleChartData $data)
 	{
-		$this->data[] = $data;
+		if ( $data->hasIndex() )
+			throw new LogicException('Invalid data serie. This data serie has already been added.');
+
+		$index = array_push($this->data, $data);
+		$data->setIndex($index - 1);
 		return $this;
 	}
 
@@ -138,6 +161,19 @@ class GoogleChart
 	}
 
 	/**
+	 * Add a marker to the chart.
+	 *
+	 * @param $marker (GoogleChartMarker)
+	 * @see GoogleChartMarker
+	 */
+	public function addMarker(GoogleChartMarker $marker)
+	{
+		$this->markers[] = $marker;
+
+		return $this;
+	}
+
+	/**
 	 * Set autoscaling mode.
 	 *
 	 *
@@ -152,6 +188,53 @@ class GoogleChart
 		return $this;
 	}
 
+/**
+ * @name Chart title and style (chtt, chts)
+ */
+//@{
+	/**
+	 * Set chart title (@c chtt).
+	 *
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
+	 */
+	public function setTitle($title)
+	{
+		$this->title = $title;
+		return $this;
+	}
+
+	public function getTitle($compute = true)
+	{
+		if ( ! $compute )
+			return $this->title;
+		
+		if ( $this->title === null )
+			return null;
+
+		return str_replace(array("\r","\n"), array('','|'), $this->title);
+	}
+	
+	public function setTitleStyle($color = null, $font_size = null)
+	{
+		$this->title_style = array(
+			'color' => $color === null ? '000000' : $color,
+			'font_size' => $font_size === null ? 14 : $font_size
+		);
+		return $this;
+	}
+	
+	public function getTitleStyle($compute = true)
+	{
+		if ( ! $compute )
+			return $this->title_style;
+
+		if ( $this->title_style === null )
+			return null;
+
+		return $this->title_style['color'].','.$this->title_style['font_size'];
+	}
+
+//@}
 
 /** 
  * @name Chart Legend Text and Style (chdl, chdlp)
@@ -370,9 +453,21 @@ class GoogleChart
 		if ( $this->fills ) {
 			$q['chf'] = implode('|',$this->fills);
 		}
-	
+		$this->computeTitle($q);
+
 		$this->computeData($q);
+		$this->computeMarkers($q);
 		$this->computeAxes($q);
+	}
+	
+	protected function computeTitle(array & $q)
+	{
+		if ( $this->title ) {
+			$q['chtt'] = $this->getTitle();
+		}
+		if ( $this->title_style ) {
+			$q['chts'] = $this->getTitleStyle();
+		}
 	}
 
 	protected function computeData(array & $q)
@@ -461,6 +556,47 @@ class GoogleChart
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Compute the markers.
+	 *
+	 * This function loops through the lists of the markers.
+	 */
+	protected function computeMarkers(array & $q)
+	{
+		$markers = array();
+		$additional_data = array();
+		
+		$nb_data_series = sizeof($this->data);
+		$current_index = $nb_data_series;
+
+		foreach ( $this->markers as $m ) {
+			$data = $m->getData();
+
+			// ignore this marker
+			if ( ! $data )
+				continue;
+
+			// get the data serie index
+			$index = $data->getIndex();
+			if ( $index === null ) {
+				$additional_data[] = implode(',',$data->getValues());
+				$index = $current_index;
+				$current_index += 1;
+			}
+
+			// now $index contains the correct data serie index
+			$markers[] = $m->compute($index);
+		}
+		
+		// append every additional_data to 'chd'
+		if ( isset($additional_data[0]) ) {
+			$q['chd'] = 't'.$nb_data_series.substr($q['chd'],1).'|'.implode('|',$additional_data);
+		}
+		if ( isset($markers[0]) ) {
+			$q['chm'] = implode('|',$markers);
+		}
 	}
 
 	protected function computeAxes(array & $q)
@@ -620,3 +756,14 @@ class GoogleChart
 
 
 }
+
+/** @example line_chart.php
+ * A basic example of how to work with line chart.
+ */
+/** @example line_chart_sin_cos.php
+ * Another line chart example, with multiple data series.
+ */
+/**
+ * @example line_chart_full.php
+ * Another line chart example with plenty of options enabled.
+ */

@@ -12,15 +12,33 @@ class GoogleChartTest extends PHPUnit_Framework_TestCase
 	/**
 	 * @var GoogleChart
 	 */
-	protected $object;
+	protected $chart;
 
 	protected function setUp()
 	{
-		//~ $this->object = new GoogleChart;
+		$this->chart = new GoogleChart('lc',200,200);
+		
 	}
 
 	protected function tearDown()
 	{
 	}
 
+	public function testAddDataSetIndex()
+	{
+		$data = new GoogleChartData(array());
+		$this->chart->addData($data);
+		$index = $data->getIndex();
+		$this->assertEquals($index, 0);
+	}
+	
+	/**
+	 * @expectedException LogicException
+	 */
+	public function testCannotAddDataTwice()
+	{
+		$data = new GoogleChartData(array());
+		$this->chart->addData($data);
+		$this->chart->addData($data);
+	}
 }

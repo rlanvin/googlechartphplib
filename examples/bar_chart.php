@@ -3,19 +3,15 @@
 require '../lib/GoogleChart.php';
 
 $values = array();
-for ($i = 0; $i <= 100; $i += 1) {
+for ($i = 0; $i <= 10; $i += 1) {
 	$values[] = rand(20,80);
 }
 
-$chart = new GoogleChart('lc', 500, 200);
-$line = new GoogleChartData($values);
-$chart->addData($line);
+$chart = new GoogleChart('bvs', 500, 200);
+$chart->addData(new GoogleChartData($values));
 
 $y_axis = new GoogleChartAxis('y');
 $chart->addAxis($y_axis);
-
-$x_axis = new GoogleChartAxis('x');
-$chart->addAxis($x_axis);
 
 header('Content-Type: image/png');
 echo $chart;

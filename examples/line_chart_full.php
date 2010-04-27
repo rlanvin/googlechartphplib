@@ -1,6 +1,6 @@
 <?php
 
-require('../lib/GoogleChart.php');
+require '../lib/GoogleChart.php';
 
 $values = array(
 	array(),
@@ -19,9 +19,9 @@ $chart = new GoogleChart('lc', 600, 300);
 $chart->setGridLines(10,10);
 $chart->setLegendPosition('r');
 $chart->setFill('ffffcc');
-//~ $chart->setFill('ccffee', GoogleChart::CHART_AREA);
 $chart->setGradientFill(45, array('cccccc', 'ffffff', 'cccccc'), GoogleChart::CHART_AREA);
-//~ $chart->setOpacity(100);
+$chart->setTitle('Us versus the others.|A very good story.');
+$chart->setTitleStyle('999999', 20);
 
 $line = new GoogleChartData($values[0]);
 $line->setLegend('Us');

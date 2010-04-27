@@ -23,5 +23,13 @@ class GoogleChartDataTest extends PHPUnit_Framework_TestCase
 	{
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testIndexIsInt()
+	{
+		$data = new GoogleChartData(array());
+		$data->setIndex('abc');
+	}
 }
 
