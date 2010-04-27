@@ -26,11 +26,11 @@ include_once 'GoogleChartMarker.php';
  *
  * Depending on the type of chart, you can also add one or more axis using GoogleChartAxis class.
  *
- * \par Line chart
+ * @par Line chart example
  *
  * @include line_chart.php
  *
- * \par Work around for unimplemented features
+ * @par Work around for unimplemented features
  *
  * You can override any parameter by setting its value in the class.
  * For example, to following code will override the background:
@@ -574,20 +574,23 @@ class GoogleChart
 		foreach ( $this->markers as $m ) {
 			$data = $m->getData();
 
-			// ignore this marker
-			if ( ! $data )
-				continue;
-
-			// get the data serie index
-			$index = $data->getIndex();
-			if ( $index === null ) {
-				$additional_data[] = implode(',',$data->getValues());
-				$index = $current_index;
-				$current_index += 1;
+			$index = null;
+			if ( $data ) {
+				// get the data serie index
+				$index = $data->getIndex();
+				if ( $index === null ) {
+					$additional_data[] = implode(',',$data->getValues());
+					$index = $current_index;
+					$current_index += 1;
+				}
 			}
 
 			// now $index contains the correct data serie index
-			$markers[] = $m->compute($index);
+			$tmp = $m->compute($index);
+			if ( $tmp === null )
+				continue; // ignore empty markers
+
+			$markers[] = $tmp;
 		}
 		
 		// append every additional_data to 'chd'
@@ -716,7 +719,11 @@ class GoogleChart
 
 	public function __toString()
 	{
-		return $this->getImage();
+		try {
+			return $this->getImage();
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(), E_USER_ERROR);
+		}
 	}
 
 	/**

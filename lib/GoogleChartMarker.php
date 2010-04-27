@@ -12,22 +12,60 @@
 
 /**
  * A Marker.
+ *
+ * This in an abstract class that is used by all the Markers type.
+ *
+ * Marker implementation in Google Chart API is quite complex. There are many types
+ * of markers (value, line, shape, candlestick and range) and each has a
+ * different set of parameter and a slightly different logic. So each type has
+ * its own class, that extends GoogleChartMarker.
+ *
+ * To display a marker, you need to set a data serie using setData() function.
+ * A data serie is a GoogleChartData object. It contains points used by the 
+ * marker. You can provides an existing data serie (i.e. a data serie that has been
+ * or will be added to the chart with GoogleChart::addData()) or a new data serie.
+ * In this case, the data serie will be hidden. Please refer to Google Chart API
+ * documentation about compound chart for further information.
  */
 abstract class GoogleChartMarker
 {
+	/**
+	 * @var GoogleChartData Will hold the data serie.
+	 */
 	protected $data = null;
-	protected $type = null;
 
+/**
+ * @name Common parameters to every markers
+ */
+//@{
+	/**
+	 * @var string Color of the marker
+	 */
 	protected $color = '336699';
+	
+	/**
+	 * @var float Z-order of the marker
+	 */
 	protected $z_order = null;
+//@}
 
+	/**
+	 * Set the color of the marker.
+	 *
+	 * @param $color (string)
+	 */
 	public function setColor($color)
 	{
 		$this->color = $color;
 		return $this;
 	}
 
-	public function getColor($color)
+	/**
+	 * Return the color.
+	 *
+	 * @return string
+	 */
+	public function getColor()
 	{
 		return $this->color;
 	}
