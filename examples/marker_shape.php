@@ -16,5 +16,11 @@ $marker = new GoogleChartShapeMarker(GoogleChartShapeMarker::CIRCLE);
 $marker->setData($data);
 $chart->addMarker($marker);
 
+$marker = new GoogleChartShapeMarker(GoogleChartShapeMarker::ARROW);
+$marker->setData($data);
+$marker->setColor('ff0000');
+$marker->setPoint(2);
+$chart->addMarker($marker);
+
 header('Content-Type: image/png');
 echo $chart;

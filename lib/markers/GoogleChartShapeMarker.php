@@ -34,8 +34,10 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 	const X = 'x';
 
 	protected $shape = null;
+
 	protected $points = null;
 	protected $position = null;
+
 	protected $size = '10';
 
 	/**
@@ -47,15 +49,31 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 	public function __construct($shape = self::CIRCLE)
 	{
 		$this->shape = $shape;
-		$this->points = array(
-			'start' => null,
-			'stop' => null,
-			'end' => null
-		);
 	}
 
+/**
+ * @name Position
+ * Thoses functions are mutually exclusive (if you call more than one of them,
+ * only the last one will be remembered).
+ */
+//@{
+	/**
+	 * Set a fixed position for the marker.
+	 *
+	 * When a marker has a fixed position, you MUST NOT associate it to a data
+	 * serie (with setData()). Otherwise, the fixed position will be ignored.
+	 *
+	 * @param $x (float) between 0 and 1
+	 * @param $y (float) between 0 and 1
+	 * @return $this
+	 */
 	public function setFixedPosition($x, $y)
 	{
+		if ( $x < 0 || $x > 1 || ! is_numeric($x) )
+			throw new InvalidArgumentException('Invalid x position (must be between 0 and 1)');
+		if ( $y < 0 || $y > 1 || ! is_numeric($y) )
+			throw new InvalidArgumentException('Invalid y position (must be between 0 and 1)');
+
 		$this->position = array(
 			'x' => $x,
 			'y' => $y
@@ -63,8 +81,29 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 		return $this;
 	}
 
+	/**
+	 * Displays only the selected point.
+	 *
+	 * @param $point (int) The index of the point to display (0 based) in the data serie
+	 * @return $this
+	 */
+	public function setPoint($point)
+	{
+		$this->points = $point;
+		return $this;
+	}
+
+	/**
+	 * Displays a range of points (@c start:end:n or @c -n format).
+	 *
+	 * @return $this
+	 */
 	public function setPoints($start = null, $end = null, $step = null)
 	{
+		if ( $this->points['start'] === null && $this->points['end'] === null && $this->points['step'] === null ) {
+			$this->points = null;
+		}
+
 		$this->points = array(
 			'start' => $start,
 			'end' => $end,
@@ -73,14 +112,24 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 		return $this;
 	}
 
+	/**
+	 * Displays every nth points (@c -n format).
+	 *
+	 * @return $this
+	 */
 	public function setStep($step)
 	{
-		$this->points['step'] = $step;
+		$this->points = array(
+			'start' => null,
+			'end' => null,
+			'step' => $step
+		);
 		return $this;
 	}
+//@}
 
 	/**
-	 * Set the size of the line.
+	 * Set the size of the shape.
 	 *
 	 * @param $size (int)
 	 * @return $this
@@ -91,25 +140,32 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 		return $this;
 	}
 
-	public function compute($index)
+	public function compute($index, $chart_type = null)
 	{
 		if ( $index === null ) {
 			if ( $this->position === null ) {
 				throw new LogicException('Shape marker requires one data serie or requires to have a fixed position.');
 			}
 
-			// fixed position marker
+			// fixed position marker (x:y format)
 			$str = '@';
 			$points = $this->position['x'].':'.$this->position['y'];
 		}
 		else {
 			$str = '';
-			if ( $this->points['start'] === null && $this->points['end'] === null && $this->points['step'] === null ) {
-				$points = -1;
+			// default = all (-1 format)
+			if ( $this->points === null ) {
+				$points = '-1';
 			}
+			// only one point (n.d format)
+			elseif ( ! is_array($this->points) ) {
+				$points = number_format($this->points,1);
+			}
+			// step only (-n format)
 			elseif ( $this->points['start'] === null && $this->points['end'] === null ) {
 				$points = '-'.$this->points['step'];
 			}
+			// serie (start:end:n)
 			else {
 				$points = $this->points['start'].':'.$this->points['end'].':'.$this->points['step'];
 			}
@@ -124,6 +180,9 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 			$this->size
 		);
 
+		if ( $this->z_order !== null ) {
+			$str .= ','.$this->z_order;
+		}
 		return $str;
 	}
 }

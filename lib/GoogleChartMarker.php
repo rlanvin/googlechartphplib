@@ -95,5 +95,5 @@ abstract class GoogleChartMarker
 		return $this->data;
 	}
 	
-	abstract public function compute($index);
+	abstract public function compute($index, $chart_type = null);
 }

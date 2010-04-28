@@ -75,7 +75,7 @@ class GoogleChartLineMarker extends GoogleChartMarker
 	 * @param $index (int) index of the data serie.
 	 * @return string
 	 */
-	public function compute($index)
+	public function compute($index, $chart_type = null)
 	{
 		if ( $index === null )
 			throw new LogicException('Line marker requires one data serie.');

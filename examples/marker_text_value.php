@@ -12,7 +12,7 @@ $chart = new GoogleChart('bvs', 500, 200);
 $data = new GoogleChartData($values);
 $chart->addData($data);
 
-$marker = new GoogleChartTextMarker(GoogleChartTextMarker::VALUE);
+$marker = new GoogleChartTextMarker();
 $marker->setData($data);
 $chart->addMarker($marker);
 

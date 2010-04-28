@@ -586,7 +586,7 @@ class GoogleChart
 			}
 
 			// now $index contains the correct data serie index
-			$tmp = $m->compute($index);
+			$tmp = $m->compute($index, $this->type);
 			if ( $tmp === null )
 				continue; // ignore empty markers
 
