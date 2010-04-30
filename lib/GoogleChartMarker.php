@@ -41,7 +41,7 @@ abstract class GoogleChartMarker
 	/**
 	 * @var string Color of the marker
 	 */
-	protected $color = '336699';
+	protected $color = '4D89F9';
 	
 	/**
 	 * @var float Z-order of the marker

@@ -229,12 +229,4 @@ class GoogleChartData
 		}
 		return $str;
 	}
-
-	/**
-	 * Value Markers (chm)
-	 */
-	public function setMarkers()
-	{
-	
-	}
 }

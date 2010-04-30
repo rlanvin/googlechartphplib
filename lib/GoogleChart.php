@@ -598,7 +598,7 @@ class GoogleChart
 			$q['chd'] = 't'.$nb_data_series.substr($q['chd'],1).'|'.implode('|',$additional_data);
 		}
 		if ( isset($markers[0]) ) {
-			$q['chm'] = implode('|',$markers);
+			$q['chm'] = (isset($q['chm']) ? $q['chm'].'|' : '').implode('|',$markers);
 		}
 	}
 
@@ -761,6 +761,10 @@ class GoogleChart
 		return self::post($q);
 	}
 
+	static public function validColor($color)
+	{
+		return preg_match('/^[0-9A-F]{6}$/i', $color);
+	}
 
 }
 
