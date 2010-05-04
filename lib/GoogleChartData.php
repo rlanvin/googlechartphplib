@@ -96,7 +96,7 @@ class GoogleChartData
 		return array_keys($this->values);
 	}
 
-	public function setautoscale($autoscale)
+	public function setAutoscale($autoscale)
 	{
 		$this->autoscale = $autoscale;
 		return $this;
@@ -104,6 +104,7 @@ class GoogleChartData
 
 	public function setScale($min, $max)
 	{
+		$this->setAutoscale(false);
 		$this->scale = array(
 			'min' => $min,
 			'max' => $max
@@ -123,7 +124,7 @@ class GoogleChartData
 		if ( $this->scale == null ) {
 			return '0,100';
 		}
-		
+
 		return $this->scale['min'].','.$this->scale['max'];
 	}
 
