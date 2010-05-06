@@ -40,6 +40,8 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 
 	protected $size = '10';
 
+	protected $border = null;
+
 	/**
 	 * Constructor.
 	 *
@@ -140,6 +142,34 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 		return $this;
 	}
 
+	/** 
+	 * Set a border to the shape.
+	 *
+	 * To create a border to a shape with Google Chart API, you need to create
+	 * another similar marker below the first one, with a different color
+	 * and a slightly bigger size.
+	 *
+	 * This function does the job for you. Just specify a color and the size of
+	 * the border, and it will create the second marker automatically.
+	 *
+	 * @since 0.4
+	 *
+	 * @param $color (string) a color in RRGGBB format
+	 * @param $size (int) size of the border (default is 2)
+	 * @return $this
+	 */
+	public function setBorder($color, $size = 2)
+	{
+		$this->border = array(
+			'size' => $size,
+			'color' => $color
+		);
+		return $this;
+	}
+
+	/**
+	 * @internal
+	 */
 	public function compute($index, $chart_type = null)
 	{
 		if ( $index === null ) {
@@ -169,6 +199,17 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 			else {
 				$points = $this->points['start'].':'.$this->points['end'].':'.$this->points['step'];
 			}
+		}
+
+		if ( $this->border !== null ) {
+			$str .= sprintf(
+				'%s,%s,%d,%s,%s|',
+				$this->shape,
+				$this->border['color'],
+				$index,
+				$points,
+				$this->size + $this->border['size']
+			);
 		}
 
 		$str .= sprintf(

@@ -53,6 +53,8 @@ class GoogleChartTextMarker extends GoogleChartMarker
 	protected $placement = null;
 	protected $text = null;
 
+	protected $bar_sum = false;
+
 	/**
 	 * Create a new text marker.
 	 *
@@ -205,6 +207,12 @@ class GoogleChartTextMarker extends GoogleChartMarker
 		return $str;
 	}
 
+	public function setBarSum($sum)
+	{
+		$this->bar_sum = (bool) $sum;
+		return $this;
+	}
+
 	/**
 	 * Compute the parameter value.
 	 *
@@ -214,6 +222,10 @@ class GoogleChartTextMarker extends GoogleChartMarker
 	 */
 	public function compute($index, $chart_type = null)
 	{
+		if ( $chart_type[0] == 'b' && $this->bar_sum ) {
+			$index = -1;
+		}
+
 		if ( $index === null ) {
 			if ( $this->position === null ) {
 				throw new LogicException('Text marker requires one data serie or requires to have a fixed position.');

@@ -118,7 +118,9 @@ class GoogleChartData
 			return $this->scale;
 
 		if ( $this->autoscale == true ) {
-			return min($this->values).','.max($this->values);
+			if ( ! empty($this->values) ) {
+				return min($this->values).','.max($this->values);
+			}
 		}
 		
 		if ( $this->scale == null ) {
