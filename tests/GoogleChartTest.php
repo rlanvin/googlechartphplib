@@ -41,4 +41,39 @@ class GoogleChartTest extends PHPUnit_Framework_TestCase
 		$this->chart->addData($data);
 		$this->chart->addData($data);
 	}
+	
+	public function testChtt()
+	{
+		$this->assertNull($this->chart->computeChtt());
+
+		$this->chart->setTitle('foobar');
+		$this->assertEquals($this->chart->computeChtt(), 'foobar');
+		
+		$this->chart->setTitle("foo\nbar");
+		$this->assertEquals($this->chart->computeChtt(), 'foo|bar');
+	}
+	
+	public function testChts()
+	{
+		$this->assertNull($this->chart->computeChts());
+		
+		// chts is null if no title
+		$this->chart->setTitleColor('00ff00');
+		$this->assertNull($this->chart->computeChts());
+		
+		// title make chts appears
+		$this->chart->setTitle('foobar');
+		$this->assertEquals($this->chart->computeChts(), '00ff00,12');
+		
+		$q = $this->chart->getQuery();
+		$this->assertEquals($q['chts'], '00ff00,12');
+
+		// setTitleSize()
+		$this->chart->setTitleSize('20');
+		$this->assertEquals($this->chart->computeChts(), '00ff00,20');
+		
+		// compute works
+		$q = $this->chart->getQuery();
+		$this->assertEquals($q['chts'], '00ff00,20');
+	}
 }

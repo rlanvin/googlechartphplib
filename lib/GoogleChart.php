@@ -15,8 +15,9 @@ include_once 'GoogleChartAxis.php';
 include_once 'GoogleChartMarker.php';
 
 /**
- * This class represents a chart.
+ * A chart.
  *
+ * This class represent a chart. It provides a bunch of setters to customize it.
  * When creating a new chart, you need to specify 3 things:
  * - type of the chart (see http://code.google.com/apis/chart/docs/gallery/chart_gall.html)
  * - width
@@ -46,6 +47,9 @@ include_once 'GoogleChartMarker.php';
  */
 class GoogleChart
 {
+	/**
+	 * Google Chart API base url.
+	 */
 	const BASE_URL = 'http://chart.apis.google.com/chart';
 
 	const AUTOSCALE_OFF = 0;
@@ -78,8 +82,10 @@ class GoogleChart
 	protected $grid_lines = null;
 	protected $parameters = array();
 	
+	protected $chts = false;
 	protected $title = null;
-	protected $title_style = null;
+	protected $title_color = '000000';
+	protected $title_size = '12';
 
 	protected $autoscale = null;
 	protected $autoscale_axis = null;
@@ -164,7 +170,7 @@ class GoogleChart
 	 * Add a marker to the chart.
 	 *
 	 * @param $marker (GoogleChartMarker)
-	 * @see GoogleChartMarker
+	 * @see GoogleChartShapeMarker, GoogleChartTextMarker, GoogleChartLineMarker
 	 */
 	public function addMarker(GoogleChartMarker $marker)
 	{
@@ -176,7 +182,33 @@ class GoogleChart
 	/**
 	 * Set autoscaling mode.
 	 *
+	 * Autoscaling is a feature provided by this library. Because Google Chart
+	 * default scale is 0:100, most of the time your data will not appears the
+	 * way you want. So you need to set a scale for the chart.
 	 *
+	 * Depending on the autoscale value, the chart will be rendered in different ways
+	 *
+	 * - If autoscale is AUTOSCALE_OFF, then it will use the data serie scale.
+	 * You can set the scale of each data serie manually using GoogleChartData::setScale().
+	 * GoogleChartData default scale is 0:100, but there is also an autoscale feature
+	 * for the data serie. See GoogleChartData::setAutoscale().
+	 *
+	 * - If autoscale is AUTOSCALE_Y_AXIS: it will synchronize the scale of the whole
+	 * chart to the first Y axis range. Axis are added with addAxis(). You can
+	 * set the range of an axis using GoogleChartAxis::setRange().
+	 * This is the default mode.
+	 *
+	 * - If autoscale is AUTOSCALE_VALUES: it will set the scale of the whole
+	 * chart from 0 to the biggest value of all data series.
+	 * 
+	 * @see http://code.google.com/apis/chart/docs/data_formats.html#data_scaling
+	 *
+	 * @param $autoscale One of the following:
+	 * - GoogleChart::AUTOSCALE_OFF
+	 * - GoogleChart::AUTOSCALE_Y_AXIS (default)
+	 * - GoogleChart::AUTOSCALE_VALUES
+	 *
+	 * @return $this
 	 */
 	public function setAutoscale($autoscale)
 	{
@@ -193,9 +225,12 @@ class GoogleChart
  */
 //@{
 	/**
-	 * Set chart title (@c chtt).
+	 * Set the chart title (@c chtt).
+	 *
+	 * @param $title (string)
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
+	 * @return $this
 	 */
 	public function setTitle($title)
 	{
@@ -203,35 +238,100 @@ class GoogleChart
 		return $this;
 	}
 
-	public function getTitle($compute = true)
+	/**
+	 * Returns chart title setted by setTitle().
+	 * @return string
+	 */
+	public function getTitle()
 	{
-		if ( ! $compute )
-			return $this->title;
-		
+		return $this->title;
+	}
+
+	/** @internal
+	 * Compute @c chtt parameter (chart title).
+	 *
+	 * @return string or null if parameter is not needed
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
+	 */
+	public function computeChtt()
+	{
 		if ( $this->title === null )
 			return null;
 
 		return str_replace(array("\r","\n"), array('','|'), $this->title);
 	}
 	
-	public function setTitleStyle($color = null, $font_size = null)
+	/**
+	 * Set the color of the title (@c chts).
+	 *
+	 * @param $color (string in ) The title color, in RRGGBB hexadecimal format. Default color is black.
+	 *
+	 * @since 0.4
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
+	 */
+	public function setTitleColor($color)
 	{
-		$this->title_style = array(
-			'color' => $color === null ? '000000' : $color,
-			'font_size' => $font_size === null ? 14 : $font_size
-		);
+		$this->chts = true;
+		$this->title_color = $color;
 		return $this;
 	}
-	
-	public function getTitleStyle($compute = true)
-	{
-		if ( ! $compute )
-			return $this->title_style;
 
-		if ( $this->title_style === null )
+	/**
+	 * Returns the title color.
+	 *
+	 * If no title color has been set using setTitleColor(), it will returns
+	 * the default title color.
+	 *
+	 * @since 0.4
+	 * @return string in RRGGBB format
+	 */
+	public function getTitleColor()
+	{
+		return $this->title_color;
+	}
+
+	/**
+	 * Set the font size of the title (@c chts).
+	 *
+	 * @param $size (int) Font size of the title, in points.
+	 *
+	 * @since 0.4
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
+	 */
+	public function setTitleSize($size)
+	{
+		$this->chts = true;
+		$this->title_size = $size;
+		return $this;
+	}
+
+	/**
+	 * Returns the title size.
+	 *
+	 * If no title size has been set using setTitleSize(), it will returns the
+	 * default title color.
+	 *
+	 * @since 0.4
+	 * @return string
+	 */
+	public function getTitleSize()
+	{
+		return $this->title_size;
+	}
+
+	/** @internal
+	 * Compute @c chts parameter.
+	 *
+	 * @since 0.4
+	 * @return string or null if the parameter is not needed
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
+	 */
+	public function computeChts()
+	{
+		if ( ! $this->chts || $this->title === null )
 			return null;
 
-		return $this->title_style['color'].','.$this->title_style['font_size'];
+		return $this->title_color.','.$this->title_size;
 	}
 
 //@}
@@ -283,13 +383,22 @@ class GoogleChart
 		return $this;
 	}
 
+	/**
+	 * Set if empty legends entries shoud be skipped in the legend or not.
+	 *
+	 * @param $skip_empty (bool)
+	 */
 	public function setLegendSkipEmpty($skip_empty)
 	{
-		$this->legend_skip_empty = $skip_empty;
+		$this->legend_skip_empty = (bool) $skip_empty;
 		return $this;
 	}
 
-	public function getLegendOptions()
+	/**
+	 * @internal
+	 * @since 0.4
+	 */
+	public function computeChdlp()
 	{
 		$str = '';
 		if ( $this->legend_position !== null ) {
@@ -304,15 +413,25 @@ class GoogleChart
 		return $str;
 	}
 
-	public function hasCustomLegendOptions()
+	/**
+	 * @internal
+	 * @since 0.4
+	 */
+	public function hasChdlp()
 	{
 		return $this->legend_skip_empty === true || $this->legend_position !== null || $this->legend_label_order !== null;
 	}
-
 //@}
 
 	/**
-	 * Specify solid or dotted grid lines on the chart. (chg)
+	 * Specify solid or dotted grid lines on the chart. (@c chg)
+	 *
+	 * @param $x_axis_step_size
+	 * @param $y_axis_step_size
+	 * @param $dash_length
+	 * @param $space_length
+	 * @param $x_offset
+	 * @param $y_offset
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_grid_lines
 	 */
@@ -339,6 +458,10 @@ class GoogleChart
  * @name Gradient, Solid and Stripped Fills (chf)
  */
 //@{
+	/**
+	 * Set a solid background (fill) for an area (@c chf).
+	 *
+	 */
 	public function setFill($color, $area = self::BACKGROUND)
 	{
 		if ( $area != self::BACKGROUND && $area != self::CHART_AREA ) {
@@ -349,6 +472,9 @@ class GoogleChart
 		return $this;
 	}
 
+	/**
+	 * Set the opacity for solid background (fill).
+	 */
 	public function setOpacity($opacity)
 	{
 		if ( $opacity < 0 || $opacity > 100 ) {
@@ -421,16 +547,26 @@ class GoogleChart
 		$this->fills[$area] = $area.',lg,'.$angle.','.implode(',',$tmp);
 	}
 	
+	/**
+	 * Striped fill.
+	 * @todo
+	 */
 	public function setStripedFill($angle, array $colors, $area = self::BACKGROUND)
 	{
 		
 	}
 //@}
 
-/* --------------------------------------------------------------------------
- * URL Computation
- * -------------------------------------------------------------------------- */
+/**
+ * @name URL creation
+ */
+//@{
 
+	/**
+	 * Compute the whole query as an array.
+	 * @internal
+	 * Shouldn't be overrided, but who knows?
+	 */
 	protected function computeQuery()
 	{
 		$q = array(
@@ -445,6 +581,11 @@ class GoogleChart
 		return $q;
 	}
 
+	/**
+	 * Compute the whole query as an array.
+	 * @internal
+	 * To be overrided by child classes.
+	 */
 	protected function compute(array & $q)
 	{
 		if ( $this->grid_lines ) {
@@ -459,17 +600,27 @@ class GoogleChart
 		$this->computeMarkers($q);
 		$this->computeAxes($q);
 	}
-	
+
+	/**
+	 * Compute title related parameters (chtt and chts)
+	 * @internal
+	 */
 	protected function computeTitle(array & $q)
 	{
 		if ( $this->title ) {
-			$q['chtt'] = $this->getTitle();
+			$q['chtt'] = $this->computeChtt();
 		}
-		if ( $this->title_style ) {
-			$q['chts'] = $this->getTitleStyle();
+
+		$tmp = $this->computeChts();
+		if ( $tmp !== null ) {
+			$q['chts'] = $tmp;
 		}
 	}
 
+	/**
+	 * Compute data series
+	 * @internal
+	 */
 	protected function computeData(array & $q)
 	{
 		$data = array();
@@ -546,8 +697,8 @@ class GoogleChart
 			// labels
 			if ( $legends_needed ) {
 				$q['chdl'] = implode('|',$legends);
-				if ( $this->hasCustomLegendOptions() ) {
-					$q['chdlp'] = $this->getLegendOptions();
+				if ( $this->hasChdlp() ) {
+					$q['chdlp'] = $this->computeChdlp();
 				}
 			}
 		}
@@ -560,7 +711,7 @@ class GoogleChart
 
 	/**
 	 * Compute the markers.
-	 *
+	 * @internal
 	 * This function loops through the lists of the markers.
 	 */
 	protected function computeMarkers(array & $q)
@@ -602,6 +753,10 @@ class GoogleChart
 		}
 	}
 
+	/**
+	 * Compute axes.
+	 * @internal
+	 */
 	protected function computeAxes(array & $q)
 	{
 		$axes = array();
@@ -648,7 +803,21 @@ class GoogleChart
 
 		return $this;
 	}
+//@}
 
+/**
+ * @name Function to query Google Chart API
+ */
+//@{
+
+	/**
+	 * Set wether you want the class to use GET or POST for queriing the API.
+	 * Default method is POST.
+	 *
+	 * @param $method One of the following:
+	 * - GoogleChart::GET
+	 * - GoogleChart::POST
+	 */
 	public function setQueryMethod($method)
 	{
 		if ( $method !== self::POST && $method !== self::GET )
@@ -684,6 +853,11 @@ class GoogleChart
 		return $this->computeQuery();
 	}
 
+	/**
+	 * Return an HTML img tag with Google's URL.
+	 * Use this for debbuging or rapid application development.
+	 * @return string
+	 */
 	public function toHtml()
 	{
 		$str = sprintf(
@@ -717,6 +891,10 @@ class GoogleChart
 		return $image;
 	}
 
+	/**
+	 * Shortcut for getImage().
+	 *
+	 */
 	public function __toString()
 	{
 		try {
@@ -725,11 +903,12 @@ class GoogleChart
 			trigger_error($e->getMessage(), E_USER_ERROR);
 		}
 	}
+//@}
 
 	/**
-	 * Utility function. Performs a POST.
+	 * Performs a POST.
 	 */
-	static private function post(array $q = array())
+	static public function post(array $q = array())
 	{
 		$context = stream_context_create(array(
 			'http' => array(
@@ -740,6 +919,17 @@ class GoogleChart
 		));
 
 		return file_get_contents(self::BASE_URL, false, $context);
+	}
+
+	/**
+	 * Check if a color is valid RRGGBB format.
+	 *
+	 * @param $color (string)
+	 * @return bool
+	 */
+	static public function validColor($color)
+	{
+		return preg_match('/^[0-9A-F]{6}$/i', $color);
 	}
 
 /* --------------------------------------------------------------------------
@@ -759,11 +949,6 @@ class GoogleChart
 		$q = $this->computeQuery();
 		$q['chof'] = 'validate';
 		return self::post($q);
-	}
-
-	static public function validColor($color)
-	{
-		return preg_match('/^[0-9A-F]{6}$/i', $color);
 	}
 
 }

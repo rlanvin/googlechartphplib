@@ -23,7 +23,7 @@ $chart->setLegendPosition('r');
 $chart->setFill('ffffcc');
 $chart->setGradientFill(45, array('cccccc', 'ffffff', 'cccccc'), GoogleChart::CHART_AREA);
 $chart->setTitle('Us versus the others.');
-$chart->setTitleStyle('999999', 20);
+$chart->setTitleColor('999999')->setTitleSize(20);
 
 $line = new GoogleChartData($values[0]);
 $line->setLegend('Us');
