@@ -58,6 +58,9 @@ $y_axis = new GoogleChartAxis('y');
 $chart->addAxis($y_axis);
 
 $x_axis = new GoogleChartAxis('x');
+$x_axis->setTickMarks(5);
+$x_axis->setDrawLine(false);
+$x_axis->setTickColor('ff0000');
 $chart->addAxis($x_axis);
 
 if ( isset($_GET['debug']) ) {

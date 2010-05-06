@@ -625,9 +625,9 @@ class GoogleChart
 				$tick_marks[] = sprintf($tmp, $i);
 			}
 			
-			$tmp = $a->getStyle();
+			$tmp = $a->getChxs($i, $this->type);
 			if ( $tmp !== null ) {
-				$styles[] = sprintf($tmp, $i);
+				$styles[] = $tmp;
 			}
 		}
 		if ( isset($axes[0]) ) {

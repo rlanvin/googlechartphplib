@@ -19,23 +19,26 @@ class GoogleChartAxis
 	const ALIGN_CENTER = 0;
 	const ALIGN_RIGHT = 1;
 
-	const DRAW_NONE = '_';
-	const DRAW_AXIS = 'l';
-	const DRAW_TICK = 't';
-	const DRAW_BOTH = 'lt';
-
 	/**
 	 * @var string Name of the axis
 	 */
-	private $name = null;
+	protected $name = null;
 	/**
 	 * @var array
 	 */
-	private $labels = null;
+	protected $labels = null;
 
-	private $range = null;
-	private $tick_marks = null;
-	private $style = null;
+	protected $range = null;
+	protected $tick_marks = null;
+	protected $style = null;
+
+	protected $chxs = 0;
+	protected $label_color = '666666';
+	protected $font_size = '11';
+	protected $label_alignment = null;
+	protected $draw_line = true;
+	protected $draw_tick_marks = true;
+	protected $tick_color = '666666';
 
 	/**
 	 * Create a new axis.
@@ -44,8 +47,19 @@ class GoogleChartAxis
 	 */
 	public function __construct($name)
 	{
-		if ( ! ($name === 'x' || $name === 'y' || $name === 't' || $name === 'r') ) {
-			throw new InvalidArgumentException('Axis names must be x, y, t or r.');
+		switch ( $name ) {
+			case 'x':
+			case 't':
+				$this->label_alignment = 0;
+				break;
+			case 'r':
+				$this->label_alignment = -1;
+				break;
+			case 'y':
+				$this->label_alignment = 1;
+				break;
+			default:
+				throw new InvalidArgumentException('Axis names must be x, y, t or r.');
 		}
 
 		$this->name = $name;
@@ -119,7 +133,7 @@ class GoogleChartAxis
 			$str .= ','.$this->range['step'];
 		return $str;
 	}
-	
+
 	/**
 	 * Axis Tick Mark Styles (chxtc)
 	 *
@@ -145,50 +159,145 @@ class GoogleChartAxis
 		return '%d,'.implode(',',$this->tick_marks);
 	}
 
+
+/**
+ * @name Axis style (chxs)
+ */
+//@{
+
 	/**
-	 * Axis Label Styles (chxs)
-	 *
-	 * @see http://code.google.com/apis/chart/docs/chart_params.html#axis_label_styles
+	 * @since 0.4
 	 */
-	public function setStyle($label_color, $font_size = false, $alignment = false, $axis_or_tick = false)
+	public function setLabelFormat()
 	{
-		$this->style = array(
-			'label_color' => $label_color === null ? '666666' : $label_color,
-			'font_size' => $font_size === null ? '11' : $font_size,
-			'alignment' => $alignment,
-			'axis_or_tick' => $axis_or_tick
-		);
+		if ( $this->chxs < 1 ) {
+			$this->chxs = 1;
+		}
+
+		// @todo
+
 		return $this;
 	}
 
-	public function getStyle($compute = true)
+	/**
+	 * @since 0.4
+	 */
+	public function setLabelColor($color)
 	{
-		if ( ! $compute )
-			return $this->style;
-		
-		if ( $this->style === null )
+		if ( $this->chxs < 1 ) {
+			$this->chxs = 1;
+		}
+		$this->label_color = $color;
+		return $this;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public function setFontSize($size)
+	{
+		if ( $this->chxs < 2 ) {
+			$this->chxs = 2;
+		}
+		$this->font_size = $size;
+		return $this;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public function setLabelAlignment($alignment)
+	{
+		if ( $this->chxs < 3 ) {
+			$this->chxs = 3;
+		}
+		$this->label_alignment = $alignment;
+		return $this;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public function setDrawLine($line)
+	{
+		if ( $this->chxs < 4 ) {
+			$this->chxs = 4;
+		}
+		$this->draw_line = $line;
+		return $this;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public function setDrawTickMarks($tick_marks)
+	{
+		if ( $this->chxs < 4 ) {
+			$this->chxs = 4;
+		}
+		$this->draw_tick_marks = $tick_marks;
+		return $this;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public function setTickColor($tick_color)
+	{
+		if ( $this->chxs < 5 ) {
+			$this->chxs = 5;
+		}
+		$this->tick_color = $tick_color;
+		return $this;
+	}
+
+	/**
+	 * @since 0.4
+	 */
+	public function getChxs($axis_index, $chart_type = null)
+	{
+		// parameter not needed for this axis
+		if ( ! $this->chxs )
 			return null;
 
-		$str = '%d'.$this->getLabelFormat().','.$this->style['label_color'];
-		if ( $this->style['font_size'] ) {
-			$str .= ','.$this->style['font_size'];
-			if ( $this->style['alignment'] ) {
-				$str .= ','.$this->style['alignment'];
-				if ( $this->style['axis_or_tick'] ) {
-					$str .= ','.$this->style['axis_or_tick'];
+		// axis index (provided by GoogleChart class at runtime)
+		$str = $axis_index;
+
+		// @todo format string
+		
+		$str .= ','.$this->label_color;
+		if ( $this->chxs > 1 ) {
+			$str .= ','.$this->font_size;
+			if ( $this->chxs > 2 ) {
+				$str .= ','.$this->label_alignment;
+				if ( $this->chxs > 3 ) {
+					$str .= ',';
+					if ( ! $this->draw_line && ! $this->draw_tick_marks ) {
+						$str .= '_';
+					}
+					else {
+						if ( $this->draw_line ) {
+							$str .= 'l';
+						}
+						if ( $this->draw_tick_marks ) {
+							$str .= 't';
+						}
+					}
+
+					// not supported in Google-o-meter
+					if ( $this->chxs > 4 && $chart_type != 'gom') {
+						$str .= ','.$this->tick_color;
+					}
 				}
 			}
 		}
+
 		return $str;
-	}
-	
-	public function setLabelFormat()
-	{
-		$this->setStyle(null);
 	}
 
 	public function getLabelFormat($compute = true)
 	{
 		
 	}
+//@}
 }

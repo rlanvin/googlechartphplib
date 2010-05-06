@@ -45,5 +45,29 @@ class GoogleChartAxisTest extends PHPUnit_Framework_TestCase
 		$axis->setLabels(array('A','B','C'));
 		$this->assertEquals($axis->getLabels(), '%d:|A|B|C');
 	}
+	
+	public function testChxs()
+	{
+		$axis = new GoogleChartAxis('x');
+		$this->assertEquals($axis->getChxs(1), null);
+		
+		$axis->setLabelColor('ff0000');
+		$this->assertEquals($axis->getChxs(1), '1,ff0000');
+
+		$axis->setFontSize(12);
+		$this->assertEquals($axis->getChxs(1), '1,ff0000,12');
+		
+		$axis->setLabelAlignment(-1);
+		$this->assertEquals($axis->getChxs(1), '1,ff0000,12,-1');
+
+		$axis->setDrawLine(false);
+		$this->assertEquals($axis->getChxs(1), '1,ff0000,12,-1,t');
+
+		$axis->setDrawTickMarks(false);
+		$this->assertEquals($axis->getChxs(1), '1,ff0000,12,-1,_');
+		
+		$axis->setTickColor('00ff00');
+		$this->assertEquals($axis->getChxs(1), '1,ff0000,12,-1,_,00ff00');
+	}
 }
 
