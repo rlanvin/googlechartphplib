@@ -82,16 +82,18 @@ class GoogleChartIconNote extends GoogleChartIcon
 			return 'd_fnote_title';
 	}
 	
-	public function computeChld()
+	public function computeChld($separator = '|', $eol='|', $escape = '')
 	{
-		$str = sprintf(
-			'%s|%d|%s|%s|%s%s',
-			$this->type,
-			$this->size,
-			$this->text_color,
-			$this->text_alignment,
-			$this->title ? $this->title.($this->text?'|':'') : '',
-			str_replace(array("\n","\r"), array('|', ''), $this->text)
+		$str = $this->type
+			.$separator.$this->size
+			.$separator.$this->text_color
+			.$separator.$this->text_alignment
+			.$separator.($this->title ? $this->title.($this->text?$separator:'') : '');
+
+		$str .= str_replace(
+			array("\n","\r", '|','@','=',',',';'),
+			array($eol, '', $escape.'|', $escape.'@', $escape.'=', $escape.',', $escape.';'),
+			$this->text
 		);
 
 		return $str;

@@ -68,9 +68,13 @@ class GoogleChart extends GoogleChartApi
 	 */
 	protected $axes = array();
 	/**
-	 * @var array List of all markers (GoogleChartMarker)
+	 * @var array List of all markers (GoogleChartMarker) @c chm parameter
 	 */
 	protected $markers = array();
+	/**
+	 * @var array List of dynamic markers (GooglechartIcon). @c chem parameter
+	 */
+	protected $dynamic_markers = array();
 
 	protected $grid_lines = null;
 
@@ -146,11 +150,28 @@ class GoogleChart extends GoogleChartApi
 	 *
 	 * @param $marker (GoogleChartMarker)
 	 * @see GoogleChartShapeMarker, GoogleChartTextMarker, GoogleChartLineMarker
+	 * @return $this
 	 */
 	public function addMarker(GoogleChartMarker $marker)
 	{
 		$this->markers[] = $marker;
 
+		return $this;
+	}
+
+	/**
+	 * Add a dynamic icon marker to the chart.
+	 *
+	 * Dynamic icon marker are different than regular marker. Technically, they
+	 * are defined using @c chem parameter instead of @c chm for regular marker.
+	 * 
+	 * @param $marker (GoogleChartIcon)
+	 * @return $this
+	 */
+	public function addDynamicMarker(GoogleChartIcon $marker)
+	{
+		$this->dynamic_markers[] = $marker;
+		
 		return $this;
 	}
 
@@ -692,12 +713,14 @@ class GoogleChart extends GoogleChartApi
 	protected function computeMarkers(array & $q)
 	{
 		$markers = array();
+		$dynamic_markers = array();
 		$additional_data = array();
 		
 		$nb_data_series = sizeof($this->data);
 		$current_index = $nb_data_series;
 
-		foreach ( $this->markers as $m ) {
+		$array = $this->markers + $this->dynamic_markers;
+		foreach ( $array as $m ) {
 			$data = $m->getData();
 
 			$index = null;
@@ -716,15 +739,25 @@ class GoogleChart extends GoogleChartApi
 			if ( $tmp === null )
 				continue; // ignore empty markers
 
-			$markers[] = $tmp;
+			if ( $m instanceof GoogleChartMarker ) {
+				$markers[] = $tmp;
+			}
+			else {
+				$dynamic_markers[] = $tmp;
+			}
 		}
-		
+
+		if ( isset($markers[0]) ) {
+			$q['chm'] = (isset($q['chm']) ? $q['chm'].'|' : '').implode('|',$markers);
+		}
+
+		if ( isset($dynamic_markers[0]) ) {
+			$q['chem'] = implode('|',$dynamic_markers);
+		}
+
 		// append every additional_data to 'chd'
 		if ( isset($additional_data[0]) ) {
 			$q['chd'] = 't'.$nb_data_series.substr($q['chd'],1).'|'.implode('|',$additional_data);
-		}
-		if ( isset($markers[0]) ) {
-			$q['chm'] = (isset($q['chm']) ? $q['chm'].'|' : '').implode('|',$markers);
 		}
 	}
 
