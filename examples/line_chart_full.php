@@ -39,7 +39,7 @@ $marker->setData($line);
 $chart->addMarker($marker);
 
 $line = new GoogleChartData($values[1]);
-$line->setStyle(2,2,2);
+$line->setDash(2,2);
 $line->setColor('6699cc');
 $chart->addData($line);
 

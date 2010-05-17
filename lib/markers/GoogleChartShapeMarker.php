@@ -1,7 +1,7 @@
 <?php
 
 /** @file
- * This file is part of GoogleChart PHP library.
+ * This file is part of Google Chart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
  *

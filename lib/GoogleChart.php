@@ -1,7 +1,7 @@
 <?php
 
 /** @file
- * This file is part of GoogleChart PHP library.
+ * This file is part of Google Chart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
  *
@@ -10,10 +10,10 @@
  * For the full copyright and license information, please view the LICENSE file.
  */
 
-include_once 'GoogleChartApi.php';
-include_once 'GoogleChartData.php';
-include_once 'GoogleChartAxis.php';
-include_once 'GoogleChartMarker.php';
+require_once 'GoogleChartApi.php';
+require_once 'GoogleChartData.php';
+require_once 'GoogleChartAxis.php';
+require_once 'GoogleChartMarker.php';
 
 /**
  * A chart.
@@ -55,24 +55,38 @@ class GoogleChart extends GoogleChartApi
 	const BACKGROUND = 'bg';
 	const CHART_AREA = 'c';
 
-	protected $type = '';
-	protected $width = '';
-	protected $height = '';
-	
 	/**
-	 * @var array List of all data series (GoogleChartData)
+	 * Store the type of the chart as string.
+	 */
+	protected $type = '';
+
+	/**
+	 * Width
+	 */
+	protected $width = '';
+
+	/**
+	 * Height
+	 */
+	protected $height = '';
+
+	/**
+	 * List of all data series (GoogleChartData)
 	 */
 	protected $data = array();
+
 	/**
-	 * @var array List of all axes (GoogleChartAxis)
+	 * List of all axes (GoogleChartAxis)
 	 */
 	protected $axes = array();
+
 	/**
-	 * @var array List of all markers (GoogleChartMarker) @c chm parameter
+	 * List of all markers (GoogleChartMarker) @c chm parameter
 	 */
 	protected $markers = array();
+
 	/**
-	 * @var array List of dynamic markers (GooglechartIcon). @c chem parameter
+	 * List of dynamic markers (GooglechartIcon). @c chem parameter
 	 */
 	protected $dynamic_markers = array();
 
@@ -620,8 +634,13 @@ class GoogleChart extends GoogleChartApi
 	protected function computeData(array & $q)
 	{
 		$data = array();
+
 		$colors = array();
+		$colors_needed = false;
+
 		$styles = array();
+		$styles_needed = false;
+
 		$fills = array();
 
 		$scales = array();
@@ -634,41 +653,54 @@ class GoogleChart extends GoogleChartApi
 		$value_max = 0;
 		foreach ( $this->data as $i => $d ) {
 			$values = $d->getValues();
-			if ( $this->autoscale == self::AUTOSCALE_VALUES ) {
-				$max = max($values);
-				$min = min($values);
-				if ( $max > $value_max ) {
-					$value_max = $max;
+			if ( $values !== null ) {
+				if ( $this->autoscale == self::AUTOSCALE_VALUES ) {
+					$max = max($values);
+					$min = min($values);
+					if ( $max > $value_max ) {
+						$value_max = $max;
+					}
+					if ( $min < $value_min ) {
+						$value_min = $min;
+					}
 				}
-				if ( $min < $value_min ) {
-					$value_min = $min;
+				elseif ( $this->autoscale == self::AUTOSCALE_OFF ) {
+					// register every values, just in case
+					$scales[] = $d->getScale();
+					// but do not trigger if not needed
+					if ( $d->hasCustomScale() ) {
+						$scale_needed = true;
+					}
 				}
+				$data[] = implode(',',$values);
 			}
-			elseif ( $this->autoscale == self::AUTOSCALE_OFF ) {
-				// register every values, just in case
-				$scales[] = $d->getScale();
-				// but do not trigger if not needed
-				if ( $d->hasCustomScale() ) {
-					$scale_needed = true;
-				}
+			$colors[] = $d->computeChco();
+			if ( $colors_needed == false && $d->hasChco() ) {
+				$colors_needed = true;
 			}
-			$data[] = implode(',',$values);
-			$colors[] = $d->getColor();
-			$styles[] = $d->getStyle();
+			$styles[] = $d->computeChls();
+			if ( $styles_needed == false && $d->hasChls() ) {
+				$styles_needed = true;
+			}
+
 			$tmp = $d->getFill();
 			if ( $tmp ) {
 				$fills[] = sprintf($tmp, $i);
 			}
 			
 			$legends[] = $d->getLegend();
-			if ( $d->hasCustomLegend() ) {
+			if ( $legends_needed == false && $d->hasCustomLegend() ) {
 				$legends_needed = true;
 			}
 		}
 		if ( isset($data[0]) ) {
 			$q['chd'] = 't:'.implode('|',$data);
-			$q['chco'] = implode(',',$colors);
-			$q['chls'] = implode('|',$styles);
+			if ( $colors_needed ) {
+				$q['chco'] = implode(',',$colors);
+			}
+			if ( $styles_needed ) {
+				$q['chls'] = implode('|',$styles);
+			}
 			
 			// autoscale
 			switch ( $this->autoscale ) {
@@ -788,7 +820,7 @@ class GoogleChart extends GoogleChartApi
 				$tick_marks[] = sprintf($tmp, $i);
 			}
 			
-			$tmp = $a->getChxs($i, $this->type);
+			$tmp = $a->computeChxs($i, $this->type);
 			if ( $tmp !== null ) {
 				$styles[] = $tmp;
 			}

@@ -1,7 +1,7 @@
 <?php
 
 /** @file
- * This file is part of GoogleChart PHP library.
+ * This file is part of Google Chart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
  *
@@ -9,12 +9,17 @@
  *
  * For the full copyright and license information, please view the LICENSE file.
  */
- 
+
 /**
  * Basic feature to query the API.
  *
  * This class implement basic features to query Google Chart API using GET or
  * POST, as well as a simple way to set/get parameters.
+ *
+ * Every object that behave like a chart (regular charts, freestanding icons),
+ * must inherit from this class.
+ *
+ * @internal
  */
 class GoogleChartApi
 {
@@ -23,23 +28,55 @@ class GoogleChartApi
 	 */
 	const BASE_URL = 'http://chart.apis.google.com/chart';
 
+	/**
+	 * GET method
+	 */
 	const GET = 0;
+
+	/**
+	 * POST method
+	 */
 	const POST = 1;
 
+	/**
+	 * An array to store every additional parameters for the final request.
+	 * Everything written in this array will be added to the final request without
+	 * processing. It can be used to override any parameter.
+	 */
 	protected $parameters = array();
 
+	/**
+	 * GET or POST
+	 */
 	protected $query_method = null;
 
+	/**
+	 * Set a parameter.
+	 *
+	 * @param $name (string)
+	 * @param $value (mixed)
+	 */
 	public function __set($name, $value)
 	{
 		$this->parameters[$name] = $value;
 	}
 
+	/**
+	 * Return a parameter value.
+	 *
+	 * @param $name (string)
+	 * @return mixed
+	 */
 	public function __get($name)
 	{
 		return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
 	}
 
+	/**
+	 * Unset a parameter.
+	 *
+	 * @param $name (string)
+	 */
 	public function __unset($name)
 	{
 		unset($this->parameters[$name]);
@@ -47,6 +84,10 @@ class GoogleChartApi
 
 	/**
 	 * Compute the whole query as an array.
+	 *
+	 * This function here does nothing (only returns the parameters array).
+	 * It has to be overrided by child classes in order to add some logic.
+	 *
 	 * @internal
 	 */
 	protected function computeQuery()
@@ -61,18 +102,20 @@ class GoogleChartApi
 //@{
 
 	/**
-	 * Set wether you want the class to use GET or POST for queriing the API.
+	 * Set wether you want the class to use GET or POST for querying the API.
+	 *
 	 * Default method is POST.
 	 *
 	 * @param $method One of the following:
 	 * - GoogleChart::GET
 	 * - GoogleChart::POST
+	 * @return $this
 	 */
 	public function setQueryMethod($method)
 	{
 		if ( $method !== self::POST && $method !== self::GET )
 			throw new Exception(sprintf(
-				'Query method must be either POST or GET, "%s" given.',
+				'Query method must be either GoogleChart::POST or GoogleChart::GET, "%s" given.',
 				$method
 			));
 		
@@ -85,6 +128,8 @@ class GoogleChartApi
 	 *
 	 * Use this method if you need to link Google's URL directly, or if you
 	 * prefer to use your own library to GET the chart.
+	 *
+	 * @return string
 	 */
 	public function getUrl()
 	{
@@ -96,7 +141,10 @@ class GoogleChartApi
 	/**
 	 * Returns the query parameters as an array.
 	 *
-	 * Use this method if you want to do the POST yourself.
+	 * Use this method if you want to do the POST yourself, or for troubleshooting
+	 * a chart.
+	 * 
+	 * @return array
 	 */
 	public function getQuery()
 	{
@@ -105,16 +153,16 @@ class GoogleChartApi
 
 	/**
 	 * Return an HTML img tag with Google's URL.
-	 * Use this for debbuging or rapid application development.
+	 *
+	 * Use this for troubleshooting or rapid application development.
+	 *
 	 * @return string
 	 */
 	public function toHtml()
 	{
 		$str = sprintf(
-			'<img src="%s" width="%s" height="%s" alt="" />',
-			$this->getUrl(),
-			$this->width,
-			$this->height
+			'<img src="%s" alt="" />',
+			$this->getUrl()
 		);
 		return $str;
 	}
@@ -123,6 +171,8 @@ class GoogleChartApi
 	 * Query Google Chart and returns the image.
 	 *
 	 * @see setQueryMethod
+	 *
+	 * @return binary image
 	 */
 	public function getImage()
 	{
@@ -143,7 +193,6 @@ class GoogleChartApi
 
 	/**
 	 * Shortcut for getImage().
-	 *
 	 */
 	public function __toString()
 	{

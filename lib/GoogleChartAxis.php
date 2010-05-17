@@ -1,7 +1,7 @@
 <?php
 
 /** @file
- * This file is part of GoogleChart PHP library.
+ * This file is part of Google Chart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
  *
@@ -252,9 +252,9 @@ class GoogleChartAxis
 	}
 
 	/**
-	 * @since 0.4
+	 * @since 0.5
 	 */
-	public function getChxs($axis_index, $chart_type = null)
+	public function computeChxs($axis_index, $chart_type = null)
 	{
 		// parameter not needed for this axis
 		if ( ! $this->chxs )

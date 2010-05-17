@@ -14,7 +14,7 @@ $sin = new GoogleChartData($sin);
 $chart->addData($sin);
 
 $cos = new GoogleChartData($cos);
-$cos->setStyle(2,2,2); // dotted
+$cos->setDash(2); // dotted
 $chart->addData($cos);
 
 $y_axis = new GoogleChartAxis('y');
@@ -25,5 +25,12 @@ $x_axis = new GoogleChartAxis('x');
 $x_axis->setRange(0,360);
 $chart->addAxis($x_axis);
 
-header('Content-Type: image/png');
-echo $chart;
+if ( isset($_GET['debug']) ) {
+	var_dump($chart->getQuery());
+	echo $chart->validate();
+	echo $chart->toHtml();
+}
+else{
+	header('Content-Type: image/png');
+	echo $chart;
+}

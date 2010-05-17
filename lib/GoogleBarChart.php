@@ -1,7 +1,7 @@
 <?php
 
 /** @file
- * This file is part of GoogleChart PHP library.
+ * This file is part of Google Chart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
  *
@@ -17,7 +17,7 @@ require_once 'GoogleChart.php';
  *
  * This class is specifically dedicated to Bar Chart. While it is technically
  * possible to create a Bar Chart with the default GoogleChart class, this class
- * takes care of all the Bar Chart quirks for you.
+ * takes care of all the Bar Chart specifities for you.
  *
  * @include bar_chart.php
  *

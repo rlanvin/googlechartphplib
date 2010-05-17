@@ -1,7 +1,7 @@
 <?php
 
 /** @file
- * This file is part of GoogleChart PHP library.
+ * This file is part of Google Chart PHP library.
  *
  * Copyright (c) 2010 Rémi Lanvin <remi@cloudconnected.fr>
  *
@@ -16,48 +16,63 @@
 class GoogleChartData
 {
 	/**
-	 * @var array An array of the values of the data serie.
+	 *  array An array of the values of the data serie.
 	 */
 	protected $values = null;
 	/**
-	 * @var string The name of the data serie to be displayed as legend.
+	 *  string The name of the data serie to be displayed as legend.
 	 */
 	protected $legend = null;
+
+
 	/**
-	 * @var mixed Color of the data serie (string or array)
+	 * Indicate if the color has been overriden.
+	 * This variable is used to minimize the request. If no custom color has
+	 * been providen, then the @c cho parameter is not triggered.
 	 */
-	protected $color = null;
+	protected $chco = false;
 	/**
-	 * @var array Style of the data serie.
+	 * Color of the data serie (string or array)
+	 * Default color by Google Chart API is FF9900
 	 */
-	protected $style = null;
+	protected $color = 'ff9900';
+
+
+	protected $chls = false;
+	protected $thickness = 2;
+	protected $dash_length = null;
+	protected $space_length = null;
+
 	/**
-	 * @var string Line fill values (to fill area below a line).
+	 *  string Line fill values (to fill area below a line).
 	 */
 	protected $fill = null;
 	/**
-	 * @var bool Wether to calculate scale automatically or not.
+	 *  bool Wether to calculate scale automatically or not.
 	 */
 	protected $autoscale = true;
 	/**
-	 * @var array The scale, as specified by the user with setScale
+	 *  array The scale, as specified by the user with setScale
 	 */
 	protected $scale = null;
 	
 	/**
-	 * @var int Holds the index of the data serie in the chart. Null if not added.
+	 *  int Holds the index of the data serie in the chart. Null if not added.
 	 */
 	protected $index = null;
 
 	/**
 	 * Create a new data serie.
 	 */
-	public function __construct(array $values)
+	public function __construct($values)
 	{
+		if ( $values !== null && ! is_array($values) )
+			throw new InvalidArgumentException('Invalid values (must be an array or null)');
+
 		$this->values = $values;
 		
-		$this->setColor('4D89F9');
-		$this->setStyle(2);
+		//~ $this->setColor('4D89F9');
+		//~ $this->setStyle(2);
 	}
 	
 	/**
@@ -155,27 +170,42 @@ class GoogleChartData
 		return $this->legend !== null;
 	}
 
+/**
+ * @name Data Serie Color (@c chco).
+ */
+//@{
 	/**
-	 * Color (@c chco).
-	 *
 	 * Set the serie color.
-	 * Color can be an array for bar charts.
+	 * Color can be an array for bar charts and pie charts.
 	 *
-	 * http://code.google.com/apis/chart/docs/chart_params.html#gcharts_series_color
+	 * @param $color (mixed) a RRGGBB string, or an array for Bar Chart and Pie Chart
+	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_series_color
 	 */
 	public function setColor($color)
 	{
+		$this->chco = true;
 		$this->color = $color;
 		return $this;
 	}
 
 	public function getColor()
 	{
+		return $this->color;
+	}
+	
+	public function computeChco()
+	{
 		if ( is_array($this->color) )
 			return implode('|',$this->color);
 
 		return $this->color;
 	}
+
+	public function hasChco()
+	{
+		return $this->chco;
+	}
+//@}
 
 	/**
 	 * Line fill (chm)
@@ -202,34 +232,68 @@ class GoogleChartData
 		return $fill;
 	}
 
+/**
+ * @name Line styles (chls).
+ */
+// @{
+
 	/**
-	 * Line styles (chls).
+	 * Set the thickness of the line (Line Chart only).
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_styles
+	 * @since 0.5
 	 */
-	public function setStyle($thickness, $dash_length = false, $space_length = false)
+	public function setThickness($thickness)
 	{
-		$this->style = array(
-			'thickness' => $thickness === null ? 2 : $thickness,
-			'dash_length' => $dash_length === null ? 1 : $dash_length,
-			'space_length' => $space_length === null ? false : $space_length
-		);
+		$this->chls = true;
 
+		$this->thickness = $thickness;
 		return $this;
 	}
-
-	public function getStyle($compute = true)
+	
+	/**
+	 * @since 0.5
+	 */
+	public function getThickness()
 	{
-		if ( ! $compute )
-			return $this->style;
+		return $this->thickness;
+	}
 
-		$str = $this->style['thickness'];
-		if ( $this->style['dash_length'] !== false ) {
-			$str .= ','.$this->style['dash_length'];
-			if  ( $this->style['space_length'] !== false ) {
-				$str .= ','.$this->style['space_length'];
+	/**
+	 * @since 0.5
+	 */
+	public function setDash($dash_length, $space_length = null)
+	{
+		$this->chls = true;
+
+		$this->dash_length = $dash_length;
+		$this->space_length = $space_length;
+		return $this;
+	}
+	
+	/**
+	 * @internal
+	 * @since 0.5
+	 */
+	public function computeChls()
+	{
+		$str = $this->thickness;
+		if ( $this->dash_length !== null ) {
+			$str .= ','.$this->dash_length;
+			if  ( $this->space_length !== null ) {
+				$str .= ','.$this->space_length;
 			}
 		}
 		return $str;
 	}
+	
+	/**
+	 * @internal
+	 * @since 0.5
+	 */
+	public function hasChls()
+	{
+		return $this->chls;
+	}
+//@}
 }

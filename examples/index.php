@@ -17,7 +17,7 @@
 			continue;
 
 		printf(
-			'<h2>%s</h2><p class="center"><img src="/%1$s" alt="%1$s" /></p>',
+			'<h2>%s</h2><p class="center"><img src="%1$s" alt="%1$s" /></p>',
 			$f
 		);
 	}
