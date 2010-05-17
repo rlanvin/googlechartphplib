@@ -115,9 +115,10 @@ class GoogleMapChart extends GoogleChart
 		if ( ! isset($this->data[0]) )
 			throw new Exception('Map Chart needs one data serie.');
 
-		$q['chd'] = 't:'.implode(',',$this->data[0]->getValues());
+		$v = $this->data[0]->getValues();
+		$q['chd'] = 't:'.implode(',',$v);
 		// country code must be in upercase
-		$q['chld'] = strtoupper(implode('',$this->data[0]->getKeys()));
+		$q['chld'] = strtoupper(implode('',array_keys($v)));
 		$q['chtm'] = $this->area;
 
 		if ( $this->fills ) {

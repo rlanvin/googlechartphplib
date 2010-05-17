@@ -106,6 +106,8 @@ class GoogleChart extends GoogleChartApi
 
 	protected $fills = null;
 
+	protected $_compute_data_label = false;
+
 	/**
 	 * Create a new chart.
 	 *
@@ -628,7 +630,11 @@ class GoogleChart extends GoogleChartApi
 	}
 
 	/**
-	 * Compute data series
+	 * Compute data series.
+	 * 
+	 * @note This function is too long. I think it needs a redesign, but for the
+	 * moment I have no idea how to make it shorter.
+	 *
 	 * @internal
 	 */
 	protected function computeData(array & $q)
@@ -649,9 +655,15 @@ class GoogleChart extends GoogleChartApi
 		$legends = array();
 		$legends_needed = false;
 
+		if ( $this->_compute_data_label ) {
+			$labels = array();
+		}
+
 		$value_min = 0;
 		$value_max = 0;
+
 		foreach ( $this->data as $i => $d ) {
+			// data serie values and autoscale
 			$values = $d->getValues();
 			if ( $values !== null ) {
 				if ( $this->autoscale == self::AUTOSCALE_VALUES ) {
@@ -674,10 +686,14 @@ class GoogleChart extends GoogleChartApi
 				}
 				$data[] = implode(',',$values);
 			}
+			
+			// data serie color (chco)
 			$colors[] = $d->computeChco();
 			if ( $colors_needed == false && $d->hasChco() ) {
 				$colors_needed = true;
 			}
+
+			// data serie style (chls)
 			$styles[] = $d->computeChls();
 			if ( $styles_needed == false && $d->hasChls() ) {
 				$styles_needed = true;
@@ -692,47 +708,60 @@ class GoogleChart extends GoogleChartApi
 			if ( $legends_needed == false && $d->hasCustomLegend() ) {
 				$legends_needed = true;
 			}
+			
+			if ( $this->_compute_data_label ) {
+				$labels[] = $d->computeChl();
+			}
 		}
-		if ( isset($data[0]) ) {
-			$q['chd'] = 't:'.implode('|',$data);
-			if ( $colors_needed ) {
-				$q['chco'] = implode(',',$colors);
+		if ( ! isset($data[0]) )
+			return;
+
+		$q['chd'] = 't:'.implode('|',$data);
+
+		if ( $colors_needed ) {
+			$q['chco'] = implode(',',$colors);
+		}
+		if ( $styles_needed ) {
+			$q['chls'] = implode('|',$styles);
+		}
+		
+		if ( $this->_compute_data_label ) {
+			$tmp = rtrim(implode('|',$labels),'|');
+			if ( $tmp ) {
+				$q['chl'] = $tmp;
 			}
-			if ( $styles_needed ) {
-				$q['chls'] = implode('|',$styles);
-			}
-			
-			// autoscale
-			switch ( $this->autoscale ) {
-				case self::AUTOSCALE_Y_AXIS:
-					if ( $this->autoscale_axis !== null ) {
-						$range = $this->autoscale_axis->getRange(false);
-						if ( $range !== null ) {
-							$q['chds'] = $range['start_val'].','.$range['end_val'];
-						}
+		}
+
+		// autoscale
+		switch ( $this->autoscale ) {
+			case self::AUTOSCALE_Y_AXIS:
+				if ( $this->autoscale_axis !== null ) {
+					$range = $this->autoscale_axis->getRange(false);
+					if ( $range !== null ) {
+						$q['chds'] = $range['start_val'].','.$range['end_val'];
 					}
-					break;
-				case self::AUTOSCALE_VALUES:
-					$q['chds'] = $value_min.','.$value_max;
-					break;
-				// if autoscale if off, then we compute manual scale
-				case self::AUTOSCALE_OFF:
-					if ( $scale_needed ) {
-						$q['chds'] = implode(',', $scales);
-					}
-			}
-			
-			// labels
-			if ( $legends_needed ) {
-				$q['chdl'] = implode('|',$legends);
-				if ( $this->hasChdlp() ) {
-					$q['chdlp'] = $this->computeChdlp();
 				}
+				break;
+			case self::AUTOSCALE_VALUES:
+				$q['chds'] = $value_min.','.$value_max;
+				break;
+			// if autoscale if off, then we compute manual scale
+			case self::AUTOSCALE_OFF:
+				if ( $scale_needed ) {
+					$q['chds'] = implode(',', $scales);
+				}
+		}
+		
+		// legends
+		if ( $legends_needed ) {
+			$q['chdl'] = implode('|',$legends);
+			if ( $this->hasChdlp() ) {
+				$q['chdlp'] = $this->computeChdlp();
 			}
 		}
-		if ( isset($fills[0]) ) {
+
+		if ( isset($fills[0]) )
 			$q['chm'] = implode('|',$fills);
-		}
 
 		return $this;
 	}

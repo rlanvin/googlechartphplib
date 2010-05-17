@@ -12,18 +12,26 @@
  
 /**
  * A data serie.
+ *
+ * This class implement every feature that is directly related to a data serie
+ * or its representation in the chart.
+ *
+ * Some method won't work for all charts, but won't produce an error.
  */
 class GoogleChartData
 {
 	/**
-	 *  array An array of the values of the data serie.
+	 * An array of the values of the data serie.
 	 */
 	protected $values = null;
 	/**
-	 *  string The name of the data serie to be displayed as legend.
+	 *  The name of the data serie to be displayed as legend.
 	 */
 	protected $legend = null;
-
+	/**
+	 * The label of the values of the data serie. Pie Chart only.
+	 */
+	protected $labels = null;
 
 	/**
 	 * Indicate if the color has been overriden.
@@ -37,14 +45,28 @@ class GoogleChartData
 	 */
 	protected $color = 'ff9900';
 
-
+	/**
+	 * Indicate if @c chls parameter is needed
+	 */
 	protected $chls = false;
+
+	/**
+	 * Thickness of the line. Line Chart only. (@c chls)
+	 */
 	protected $thickness = 2;
+	
+	/**
+	 * Length of the dash. Line Chart only. (@c chls)
+	 */
 	protected $dash_length = null;
+	
+	/**
+	 * Length of the spaces between dashes. Line Chart only. (@c chls)
+	 */
 	protected $space_length = null;
 
 	/**
-	 *  string Line fill values (to fill area below a line).
+	 *  Line fill values (to fill area below a line). (@c chm)
 	 */
 	protected $fill = null;
 	/**
@@ -70,15 +92,83 @@ class GoogleChartData
 			throw new InvalidArgumentException('Invalid values (must be an array or null)');
 
 		$this->values = $values;
-		
-		//~ $this->setColor('4D89F9');
-		//~ $this->setStyle(2);
+	}
+
+	/**
+	 * Returns the values of this dataserie
+	 * @return array (or null)
+	 */
+	public function getValues()
+	{
+		return $this->values;
+	}
+
+/**
+ * @name Pie Chart Labels @c chl
+ */
+//@{
+	/**
+	 * @since 0.5
+	 */
+	public function setLabelsAuto()
+	{
+		return $this->setLabels(array_keys($this->values));
+	}
+
+	/**
+	 * @since 0.5
+	 */
+	public function setLabels($labels)
+	{
+		$n = sizeof($labels);
+		$v = sizeof($this->values);
+		if ( $n > $v ) {
+			throw new InvalidArgumentException('Invalid labels, to many labels');
+		}
+		elseif ( $n < $v ) {
+			$labels += array_fill(0, $v-$n, '');
+		}
+
+		$this->labels = $labels;
+		return $this;
 	}
 	
+	public function getLabels()
+	{
+		return $this->labels;
+	}
+
+	/**
+	 * Compute @c chl parameter.
+	 *
+	 * Only for Pie Chart.
+	 *
+	 * If the chart has no label, this function returns a string containing
+	 * an empty label for each value (example "|" for 2 values, "||" for 3, etc.).
+	 * This way, labels are always in sync with the values. The case happens
+	 * with a concentric chart, if the inner chart (first data serie) doesn't
+	 * have label, but the outer chart (second data serie) has.
+	 *
+	 * @internal
+	 * @since 0.5
+	 */
+	public function computeChl()
+	{
+		if ( ! $this->values )
+			return '';
+
+		if ( $this->labels === null ) {
+			return str_repeat('|',sizeof($this->values)-1);
+		}
+		return implode('|',$this->labels);
+	}
+//@}
+
 	/**
 	 * Set the index of the data serie in the chart.
 	 *
-	 * @note For internal use only.
+	 * @internal
+	 * @note Used by GoogleChart when calling GoogleChart::addData()
 	 * @param $index (int)
 	 * @return $this
 	 */
@@ -91,24 +181,24 @@ class GoogleChartData
 		return $this;
 	}
 
+	/**
+	 * Return the index of the data serie in the chart (null if not in a chart).
+	 *
+	 * @return int or null
+	 */
 	public function getIndex()
 	{
 		return $this->index;
 	}
 
+	/**
+	 * Returns true if the data serie has an index, false otherwise.
+	 *
+	 * @return bool
+	 */
 	public function hasIndex()
 	{
 		return $this->index !== null;
-	}
-
-	public function getValues()
-	{
-		return $this->values;
-	}
-
-	public function getKeys()
-	{
-		return array_keys($this->values);
 	}
 
 	public function setAutoscale($autoscale)

@@ -32,6 +32,9 @@ class GoogleChartDataTest extends PHPUnit_Framework_TestCase
 		$data->setIndex('abc');
 	}
 	
+	/**
+	 * Line style
+	 */
 	public function testChls()
 	{
 		$data = new GoogleChartData(array());
@@ -53,6 +56,18 @@ class GoogleChartDataTest extends PHPUnit_Framework_TestCase
 		$data = new GoogleChartData(array());
 		$data->setDash(2,3);
 		$this->assertEquals($data->computeChls(), '2,2,3');
+	}
+	
+	/**
+	 * Label
+	 */
+	public function testChl()
+	{
+		$data = new GoogleChartData(array(10,20,30));
+		$this->assertEquals($data->computeChl(), '||');
+		
+		$data->setLabels(array('Foo','Bar','?'));
+		$this->assertEquals($data->computeChl(), 'Foo|Bar|?');
 	}
 }
 
