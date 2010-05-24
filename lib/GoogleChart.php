@@ -665,6 +665,7 @@ class GoogleChart extends GoogleChartApi
 		foreach ( $this->data as $i => $d ) {
 			// data serie values and autoscale
 			$values = $d->getValues();
+
 			if ( $values !== null ) {
 				if ( $this->autoscale == self::AUTOSCALE_VALUES ) {
 					$max = max($values);
@@ -684,7 +685,7 @@ class GoogleChart extends GoogleChartApi
 						$scale_needed = true;
 					}
 				}
-				$data[] = implode(',',$values);
+				$data[] = $d->computeChd();
 			}
 			
 			// data serie color (chco)
@@ -789,7 +790,7 @@ class GoogleChart extends GoogleChartApi
 				// get the data serie index
 				$index = $data->getIndex();
 				if ( $index === null ) {
-					$additional_data[] = implode(',',$data->getValues());
+					$additional_data[] = $data->computeChd();
 					$index = $current_index;
 					$current_index += 1;
 				}

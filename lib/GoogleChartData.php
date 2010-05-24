@@ -103,6 +103,16 @@ class GoogleChartData
 		return $this->values;
 	}
 
+	public function computeChd()
+	{
+		$values = $this->values;
+		foreach ( $values as & $v ) {
+			if ( $v === null ) {
+				$v = '_';
+			}
+		}
+		return implode(',',$values);
+	}
 /**
  * @name Pie Chart Labels @c chl
  */

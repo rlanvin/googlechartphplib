@@ -154,11 +154,11 @@ class GoogleChartShapeMarker extends GoogleChartMarker
 	 *
 	 * @since 0.4
 	 *
-	 * @param $color (string) a color in RRGGBB format
 	 * @param $size (int) size of the border (default is 2)
+	 * @param $color (string) a color in RRGGBB format (default is white)
 	 * @return $this
 	 */
-	public function setBorder($color, $size = 2)
+	public function setBorder($size = 2, $color = 'ffffff')
 	{
 		$this->border = array(
 			'size' => $size,
