@@ -197,7 +197,7 @@ class GoogleChartApi
 	public function __toString()
 	{
 		try {
-			return $this->getImage();
+			return (string) $this->getImage();
 		} catch (Exception $e) {
 			trigger_error($e->getMessage(), E_USER_ERROR);
 		}

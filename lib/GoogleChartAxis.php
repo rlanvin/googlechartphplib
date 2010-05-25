@@ -39,6 +39,7 @@ class GoogleChartAxis
 	protected $draw_line = true;
 	protected $draw_tick_marks = true;
 	protected $tick_color = '666666';
+	protected $label_positions = null;
 
 	/**
 	 * Create a new axis.
@@ -159,6 +160,31 @@ class GoogleChartAxis
 		return '%d,'.implode(',',$this->tick_marks);
 	}
 
+	/**
+	 * @c chxp
+	 */
+	public function setLabelPositions()
+	{
+		$this->label_positions = func_get_args();
+		if ( ! isset($this->label_positions[0]) )
+			$this->label_positions = null;
+
+		return $this;
+	}
+
+	public function computeChxp($axis_index)
+	{
+		if ( ! $this->label_positions )
+			return null;
+
+		$str = $axis_index.','.implode(',',$this->label_positions);
+		return $str;
+	}
+	
+	public function hasChxp()
+	{
+		return $this->label_positions !== null;
+	}
 
 /**
  * @name Axis style (chxs)

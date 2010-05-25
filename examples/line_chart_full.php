@@ -20,6 +20,8 @@ for ($i = 0; $i <= $n; $i += 1) {
 $chart = new GoogleChart('lc', 600, 300);
 $chart->setGridLines(10,10);
 $chart->setLegendPosition('r');
+//~ $chart->setMargin(50);
+$chart->setLegendSize(150, 20);
 $chart->setFill('ffffcc');
 $chart->setGradientFill(45, array('cccccc', 'ffffff', 'cccccc'), GoogleChart::CHART_AREA);
 $chart->setTitle('Us versus the others.');

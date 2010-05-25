@@ -108,6 +108,10 @@ class GoogleChart extends GoogleChartApi
 
 	protected $_compute_data_label = false;
 
+	//~ protected $chma = false;
+	protected $margin = null;
+	protected $legend_size = null;
+
 	/**
 	 * Create a new chart.
 	 *
@@ -340,10 +344,19 @@ class GoogleChart extends GoogleChartApi
 	 */
 	public function computeChts()
 	{
-		if ( ! $this->chts || $this->title === null )
-			return null;
-
 		return $this->title_color.','.$this->title_size;
+	}
+	
+	/**
+	 * @internal
+	 * Return true if chts parameter is needed
+	 * Little trick here, if no title is set, then chts is not needed, even
+	 * if specified
+	 * @return bool
+	 */
+	public function hasChts()
+	{
+		return $this->chts;
 	}
 
 //@}
@@ -570,6 +583,98 @@ class GoogleChart extends GoogleChartApi
 //@}
 
 /**
+ * @name Chart Margins
+ */
+//@{
+
+	/**
+	 * Set margin around the charts (@c chma).
+	 *
+	 * This function works like the CSS property "margin" :
+	 * - If you specify only one parameter, then this value is used for all.
+	 * - If you specify 2 parameters, then first is "left/right" and second is
+	 *   "top/bottom"
+	 * - If you specify 4 parameters, then they are: left, top, right, bottom (tips: it's clockwise).
+	 *
+	 * @since 0.5
+	 *
+	 * @param $left (float)
+	 * @param $top (float)
+	 * @param $right (float)
+	 * @param $bottom (float)
+	 * @return $this
+	 */
+	public function setMargin($left, $top = null, $right = null, $bottom = null)
+	{
+		// if only one value, then all have the same values
+		if ( $top === null && $right === null && $bottom === null ) {
+			$this->margin = array(
+				'left' => (float) $left,
+				'right' => (float) $left,
+				'top' => (float) $left,
+				'bottom' => (float) $left
+			);
+		}
+		elseif ( $right === null && $buttom === null ) {
+			$this->margin = array(
+				'left' => (float) $left,
+				'right' => (float) $left,
+				'top' => (float) $top,
+				'bottom' => (float) $top
+			);
+		}
+		else {
+			$this->margin = array(
+				'left' => (float) $left,
+				'right' => (float) $right,
+				'top' => (float) $top,
+				'bottom' => (float) $bottom
+			);
+		}
+		return $this;
+	}
+
+	/**
+	 * Size of the legend box (@c chma).
+	 *
+	 * @since 0.5
+	 */
+	public function setLegendSize($width, $height)
+	{
+		//~ $this->chma = true;
+		$this->legend_size = array(
+			'width' => $width,
+			'heigh' => $height
+		);
+		return $this;
+	}
+
+	/**
+	 * @internal
+	 */
+	public function computeChma()
+	{
+		$str = '';
+		if ( $this->margin ) {
+			$str = implode(',',$this->margin);
+		}
+		if ( $this->legend_size ) {
+			$str .= '|'.implode(',',$this->legend_size);
+		}
+		return $str;
+	}
+	
+	/**
+	 * @internal
+	 */
+	public function hasChma()
+	{
+		return $this->margin !== null || $this->legend_size !== null;
+	}
+
+//@}
+
+/**
  * @name URL creation
  */
 //@{
@@ -606,6 +711,10 @@ class GoogleChart extends GoogleChartApi
 		if ( $this->fills ) {
 			$q['chf'] = implode('|',$this->fills);
 		}
+		
+		if ( $this->hasChma() ) {
+			$q['chma'] = $this->computeChma();
+		}
 		$this->computeTitle($q);
 
 		$this->computeData($q);
@@ -621,11 +730,10 @@ class GoogleChart extends GoogleChartApi
 	{
 		if ( $this->title ) {
 			$q['chtt'] = $this->computeChtt();
-		}
 
-		$tmp = $this->computeChts();
-		if ( $tmp !== null ) {
-			$q['chts'] = $tmp;
+			if ( $this->hasChts() ) {
+				$q['chts'] = $this->computeChts();
+			}
 		}
 	}
 
@@ -834,6 +942,7 @@ class GoogleChart extends GoogleChartApi
 		$ranges = array();
 		$tick_marks = array();
 		$styles = array();
+		$label_positions = array();
 		foreach ( $this->axes as $i => $a ) {
 			$axes[] = $a->getName();
 			if ( $a->hasCustomLabels() ) {
@@ -854,6 +963,10 @@ class GoogleChart extends GoogleChartApi
 			if ( $tmp !== null ) {
 				$styles[] = $tmp;
 			}
+			
+			if ( $a->hasChxp() ) {
+				$label_positions[] = $a->computeChxp($i);
+			}
 		}
 		if ( isset($axes[0]) ) {
 			$q['chxt'] = implode(',',$axes);
@@ -868,6 +981,9 @@ class GoogleChart extends GoogleChartApi
 			}
 			if ( isset($styles[0]) ) {
 				$q['chxs'] = implode('|', $styles);
+			}
+			if ( isset($label_positions[0]) ) {
+				$q['chxp'] = implode('|',$label_positions);
 			}
 		}
 
