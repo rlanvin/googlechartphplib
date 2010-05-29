@@ -131,10 +131,10 @@ class GoogleChartApi
 	 *
 	 * @return string
 	 */
-	public function getUrl()
+	public function getUrl($escape_amp = true)
 	{
 		$q = $this->computeQuery();
-		$url = self::BASE_URL.'?'.http_build_query($q);
+		$url = self::BASE_URL.'?'.http_build_query($q, '', $escape_amp? '&amp;' : '&');
 		return $url;
 	}
 

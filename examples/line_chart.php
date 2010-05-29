@@ -2,13 +2,9 @@
 
 require '../lib/GoogleChart.php';
 
-$values = array();
-for ($i = 0; $i <= 100; $i += 1) {
-	$values[] = rand(20,80);
-}
-
 $chart = new GoogleChart('lc', 500, 200);
-$line = new GoogleChartData($values);
+
+$line = new GoogleChartData(array(10,12,15,20,22,50,60,63,58,75,67,80));
 $chart->addData($line);
 
 $y_axis = new GoogleChartAxis('y');
@@ -17,5 +13,12 @@ $chart->addAxis($y_axis);
 $x_axis = new GoogleChartAxis('x');
 $chart->addAxis($x_axis);
 
-header('Content-Type: image/png');
-echo $chart;
+if ( isset($_GET['debug']) ) {
+	var_dump($chart->getQuery());
+	echo $chart->validate();
+	echo $chart->toHtml();
+}
+else{
+	header('Content-Type: image/png');
+	echo $chart;
+}

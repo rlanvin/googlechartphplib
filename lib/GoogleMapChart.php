@@ -94,7 +94,7 @@ class GoogleMapChart extends GoogleChart
 		
 		$this->colors = array(
 			'default' => $default_color === null ? 'BEBEBE' : $default_color,
-			'range' => $color_range === null ? array('0000FF','FF0000') : $color_range
+			'range' => $color_range === null ? array('FFFFFF','FF0000') : $color_range
 		);
 		return $this;
 	}

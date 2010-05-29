@@ -592,33 +592,32 @@ class GoogleChart extends GoogleChartApi
 	 *
 	 * This function works like the CSS property "margin" :
 	 * - If you specify only one parameter, then this value is used for all.
-	 * - If you specify 2 parameters, then first is "left/right" and second is
-	 *   "top/bottom"
-	 * - If you specify 4 parameters, then they are: left, top, right, bottom (tips: it's clockwise).
+	 * - If you specify 2 parameters, then first is "top/bottom" and second is "left/right"
+	 * - If you specify 4 parameters, then they are: top, right, bottom, left (tips: it's clockwise).
 	 *
 	 * @since 0.5
 	 *
-	 * @param $left (float)
 	 * @param $top (float)
 	 * @param $right (float)
 	 * @param $bottom (float)
+	 * @param $left (float)
 	 * @return $this
 	 */
-	public function setMargin($left, $top = null, $right = null, $bottom = null)
+	public function setMargin($top, $right = null, $bottom = null, $left = null)
 	{
 		// if only one value, then all have the same values
-		if ( $top === null && $right === null && $bottom === null ) {
+		if ( $left === null && $right === null && $bottom === null ) {
 			$this->margin = array(
-				'left' => (float) $left,
-				'right' => (float) $left,
-				'top' => (float) $left,
-				'bottom' => (float) $left
+				'left' => (float) $top,
+				'right' => (float) $top,
+				'top' => (float) $top,
+				'bottom' => (float) $top
 			);
 		}
-		elseif ( $right === null && $buttom === null ) {
+		elseif ( $left === null && $bottom === null ) {
 			$this->margin = array(
-				'left' => (float) $left,
-				'right' => (float) $left,
+				'left' => (float) $right,
+				'right' => (float) $right,
 				'top' => (float) $top,
 				'bottom' => (float) $top
 			);

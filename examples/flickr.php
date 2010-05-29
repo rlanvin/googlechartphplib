@@ -52,36 +52,6 @@ $chart->addAxis($y_axis);
 
 $x_axis = new GoogleChartAxis('x');
 $x_axis->setDrawLine(false);
-$x_axis->setLabels(array(
-	'27 apr',
-	null,
-	null,
-	null,
-	null,
-	null,
-	null,
-	'04 may',
-	null,
-	null,
-	null,
-	null,
-	null,
-	null,
-	'11 may',
-	null,
-	null,
-	null,
-	null,
-	null,
-	null,
-	'18 may',
-	null,
-	null,
-	null,
-	null,
-	null,
-	null
-));
 $x_axis->setLabels(array('27 apr','04 may','11 may','18 may'));
 $x_axis->setLabelPositions(0,25.8,51.8,77.6);
 $x_axis->setTickMarks(5);
