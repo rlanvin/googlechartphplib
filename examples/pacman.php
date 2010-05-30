@@ -3,6 +3,7 @@
 require '../lib/GooglePieChart.php';
 
 $chart = new GooglePieChart('p', 130, 100);
+$chart->setDataFormat(GoogleChart::SIMPLE_ENCODING);
 $data = new GoogleChartData(array(80,-20));
 $data->setColor('f9f900');
 $chart->addData($data);

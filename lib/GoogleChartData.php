@@ -134,92 +134,7 @@ class GoogleChartData
 		}
 	}
 	
-	static public function encodeText(array $values)
-	{
-		foreach ( $values as & $v ) {
-			if ( $v === null ) {
-				$v = '_';
-			}
-		}
-		return implode(',',$values);
-	}
-
-	static public function encodeSimple(array $values, $min = null, $max = null)
-	{
-		if ( $min === null ) {
-			$min = min($values);
-			// by default, we only want a min if there is negative values
-			if ( $min > 0 ) {
-				$min = 0;
-			}
-		}
-		if ( $max === null ) {
-			$max = max($values);
-		}
-		$max = $max + abs($min);
-
-		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		$str = '';
-		
-		foreach ( $values as $v ) {
-			if ( $v === null ) {
-				$str .= '_';
-				continue;
-			}
-			
-			$n = round(61 * (($v - $min) / $max));
-			if ( $n > 61 ) {
-				$str .= '9';
-			}
-			elseif ( $n < 0 ) {
-				$str .= '_';
-			}
-			else {
-				$str .= $map[$n];
-			}
-		}
-		return $str;
-	}
 	
-	static public function encodeExtended(array $values, $min = null, $max = null)
-	{
-		if ( $min === null ) {
-			$min = min($values);
-			// by default, we only want a min if there is negative values
-			if ( $min > 0 ) {
-				$min = 0;
-			}
-		}
-		if ( $max === null ) {
-			$max = max($values);
-		}
-		$max = $max + abs($min);
-
-		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
-		$str = '';
-		
-		foreach ( $values as $v ) {
-			if ( $v === null ) {
-				$str .= '__';
-				continue;
-			}
-
-			$n = floor(64 * 64 * (($v - $min) / $max));
-			if ( $n > (64*64 - 1) ) {
-				$str .= '..';
-			}
-			elseif ( $n < 0 ) {
-				$str .= '__';
-			}
-			else {
-				$q = floor($n / 64);
-				$r = $n - 64 * $q;
-				$str .= $map[$q].$map[$r];
-			}
-		}
-		return $str;
-	}
-
 /**
  * @name Pie Chart Labels @c chl
  */
@@ -250,6 +165,10 @@ class GoogleChartData
 		return $this;
 	}
 	
+	/**
+	 * Return labels set by setLabels()
+	 * @return array();
+	 */
 	public function getLabels()
 	{
 		return $this->labels;
@@ -318,12 +237,24 @@ class GoogleChartData
 		return $this->index !== null;
 	}
 
+	/**
+	 * Enable/disabled autoscaling.
+	 * @param $autoscale (bool)
+	 * @return $this
+	 */
 	public function setAutoscale($autoscale)
 	{
 		$this->autoscale = $autoscale;
 		return $this;
 	}
 
+	/**
+	 * Set the scale of this data serie.
+	 * When using this function, be sure your turned off global autoscaling.
+	 * @see http://code.google.com/p/googlechartphplib/wiki/Autoscaling
+	 * @param $min (int)
+	 * @param $max (int)
+	 */
 	public function setScale($min, $max)
 	{
 		$this->setAutoscale(false);
@@ -334,6 +265,9 @@ class GoogleChartData
 		return $this;
 	}
 
+	/**
+	 * @since 0.5
+	 */
 	public function getScale()
 	{
 		if ( $this->autoscale == true ) {
@@ -352,12 +286,18 @@ class GoogleChartData
 		return $this->scale;
 	}
 	
+	/**
+	 * @since 0.5
+	 */
 	public function computeChds()
 	{
 		$scale = $this->getScale();
 		return $scale['min'].','.$scale['max'];
 	}
 
+	/**
+	 * @since 0.5
+	 */
 	public function hasCustomScale()
 	{
 		return $this->scale !== null || $this->autoscale;
@@ -366,6 +306,7 @@ class GoogleChartData
 	/**
 	 * Chart Legend (chdl)
 	 *
+	 * @param $legend (string)
 	 */
 	public function setLegend($legend)
 	{
@@ -373,11 +314,19 @@ class GoogleChartData
 		return $this;
 	}
 
+	/**
+	 * Return the legend.
+	 * @return string
+	 */
 	public function getLegend()
 	{
 		return $this->legend;
 	}
 
+	/**
+	 * Return true if a legend has been set
+	 * @return bool
+	 */
 	public function hasCustomLegend()
 	{
 		return $this->legend !== null;
@@ -401,11 +350,20 @@ class GoogleChartData
 		return $this;
 	}
 
+	/**
+	 * Return the serie colors.
+	 * @return color
+	 */
 	public function getColor()
 	{
 		return $this->color;
 	}
 	
+	/**
+	 * Compute the @c cho parameter.
+	 * @internal
+	 * @return string
+	 */
 	public function computeChco()
 	{
 		if ( is_array($this->color) )
@@ -414,6 +372,10 @@ class GoogleChartData
 		return $this->color;
 	}
 
+	/**
+	 * Return true if parameter @chco is needed
+	 * @return true
+	 */
 	public function hasChco()
 	{
 		return $this->chco;
@@ -432,6 +394,9 @@ class GoogleChartData
 		);
 	}
 
+	/**
+	 * @todo Move to compute*
+	 */
 	public function getFill($compute = true)
 	{
 		if ( ! $compute )
@@ -509,4 +474,102 @@ class GoogleChartData
 		return $this->chls;
 	}
 //@}
+
+	/**
+	 * @internal
+	 * @since 0.5
+	 */
+	static public function encodeText(array $values)
+	{
+		foreach ( $values as & $v ) {
+			if ( $v === null ) {
+				$v = '_';
+			}
+		}
+		return implode(',',$values);
+	}
+
+	/**
+	 * @internal
+	 * @since 0.5
+	 */
+	static public function encodeSimple(array $values, $min = null, $max = null)
+	{
+		if ( $min === null ) {
+			$min = min($values);
+			// by default, we only want a min if there is negative values
+			if ( $min > 0 ) {
+				$min = 0;
+			}
+		}
+		if ( $max === null ) {
+			$max = max($values);
+		}
+		$max = $max + abs($min);
+
+		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		$str = '';
+		
+		foreach ( $values as $v ) {
+			if ( $v === null ) {
+				$str .= '_';
+				continue;
+			}
+			
+			$n = round(61 * (($v - $min) / $max));
+			if ( $n > 61 ) {
+				$str .= '9';
+			}
+			elseif ( $n < 0 ) {
+				$str .= '_';
+			}
+			else {
+				$str .= $map[$n];
+			}
+		}
+		return $str;
+	}
+
+	/**
+	 * @internal
+	 * @since 0.5
+	 */
+	static public function encodeExtended(array $values, $min = null, $max = null)
+	{
+		if ( $min === null ) {
+			$min = min($values);
+			// by default, we only want a min if there is negative values
+			if ( $min > 0 ) {
+				$min = 0;
+			}
+		}
+		if ( $max === null ) {
+			$max = max($values);
+		}
+		$max = $max + abs($min);
+
+		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+		$str = '';
+		
+		foreach ( $values as $v ) {
+			if ( $v === null ) {
+				$str .= '__';
+				continue;
+			}
+
+			$n = floor(64 * 64 * (($v - $min) / $max));
+			if ( $n > (64*64 - 1) ) {
+				$str .= '..';
+			}
+			elseif ( $n < 0 ) {
+				$str .= '__';
+			}
+			else {
+				$q = floor($n / 64);
+				$r = $n - 64 * $q;
+				$str .= $map[$q].$map[$r];
+			}
+		}
+		return $str;
+	}
 }

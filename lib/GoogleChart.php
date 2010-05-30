@@ -48,9 +48,8 @@ require_once 'GoogleChartMarker.php';
  */
 class GoogleChart extends GoogleChartApi
 {
-	const AUTOSCALE_OFF = 0;
-	const AUTOSCALE_Y_AXIS = 1;
-	const AUTOSCALE_VALUES = 2;
+	const AUTOSCALE_OFF = false;
+	const AUTOSCALE_VALUES = true;
 
 	const BACKGROUND = 'bg';
 	const CHART_AREA = 'c';
@@ -83,6 +82,10 @@ class GoogleChart extends GoogleChartApi
 	 * Data format (text, simple encoding or extended encoding)
 	 */
 	protected $data_format = self::TEXT;
+
+	/**
+	 * Data format have different separator character
+	 */
 	protected $data_separator = array(
 		self::TEXT => '|',
 		self::SIMPLE_ENCODING => ',',
@@ -111,8 +114,7 @@ class GoogleChart extends GoogleChartApi
 	protected $title_color = '000000';
 	protected $title_size = '12';
 
-	protected $autoscale = self::AUTOSCALE_Y_AXIS;
-	protected $autoscale_axis = null;
+	protected $autoscale = true;
 	protected $scale = null;
 
 	protected $legend_position = null;
@@ -148,7 +150,8 @@ class GoogleChart extends GoogleChartApi
 	}
 
 	/**
-	 * Change the data format used by the chart.
+	 * Set the data format used by the chart.
+	 * Default is GoogleChart::TEXT (basic text format).
 	 * @since 0.5
 	 */
 	public function setDataFormat($format)
@@ -186,10 +189,6 @@ class GoogleChart extends GoogleChartApi
 	{
 		$this->axes[] = $axis;
 
-		// auto-scale data on the first y axis
-		if ( $axis->getName() == 'y' && $this->autoscale_axis === null )
-			$this->autoscale_axis = $axis;
-
 		return $this;
 	}
 
@@ -223,6 +222,10 @@ class GoogleChart extends GoogleChartApi
 		return $this;
 	}
 
+/**
+ * @name Scaling
+ */
+//@{
 	/**
 	 * Set autoscaling mode.
 	 *
@@ -230,33 +233,16 @@ class GoogleChart extends GoogleChartApi
 	 * default scale is 0:100, most of the time your data will not appears the
 	 * way you want. So you need to set a scale for the chart.
 	 *
-	 * Depending on the autoscale value, the chart will be rendered in different ways
-	 *
-	 * - If autoscale is AUTOSCALE_OFF, then it will use the data serie scale.
-	 * You can set the scale of each data serie manually using GoogleChartData::setScale().
-	 * GoogleChartData default scale is 0:100, but there is also an autoscale feature
-	 * for the data serie. See GoogleChartData::setAutoscale().
-	 *
-	 * - If autoscale is AUTOSCALE_Y_AXIS: it will synchronize the scale of the whole
-	 * chart to the first Y axis range. Axis are added with addAxis(). You can
-	 * set the range of an axis using GoogleChartAxis::setRange().
-	 * This is the default mode.
-	 *
-	 * - If autoscale is AUTOSCALE_VALUES: it will set the scale of the whole
-	 * chart from 0 to the biggest value of all data series.
+	 * @see http://code.google.com/p/googlechartphplib/wiki/Autoscaling
 	 * 
 	 * @see http://code.google.com/apis/chart/docs/data_formats.html#data_scaling
 	 *
-	 * @param $autoscale One of the following:
-	 * - GoogleChart::AUTOSCALE_OFF
-	 * - GoogleChart::AUTOSCALE_Y_AXIS (default)
-	 * - GoogleChart::AUTOSCALE_VALUES
-	 *
+	 * @param $autoscale (bool)
 	 * @return $this
 	 */
 	public function setAutoscale($autoscale)
 	{
-		if ( ! ($autoscale === self::AUTOSCALE_OFF || $autoscale === self::AUTOSCALE_Y_AXIS || $autoscale === self::AUTOSCALE_VALUES) ) {
+		if ( $autoscale !== true && $autoscale !== false ) {
 			throw new InvalidArgumentException('Invalid autoscale mode.');
 		}
 	
@@ -264,22 +250,41 @@ class GoogleChart extends GoogleChartApi
 		return $this;
 	}
 
+	/**
+	 * Set a global scale for the chart.
+	 * Turns off autoscaling.
+	 * @since 0.5
+	 * @param $min (int)
+	 * @param $max (int)
+	 * @return $this
+	 */
 	public function setScale($min, $max)
 	{
-		$this->setAutoscale(self::AUTOSCALE_OFF);
-		
+		$this->setAutoscale(false);
+
 		$this->scale = array(
 			'min' => $min,
 			'max' => $max
 		);
 		return $this;
 	}
-	
+
+	/**
+	 * Return the scale.
+	 * Note that after the chart has been computed, this function will returns
+	 * the actual scale computed by the chart.
+	 *
+	 * @return array
+	 */
 	public function getScale()
 	{
 		return $this->scale;
 	}
 	
+	/**
+	 * Compute the @c chds parameter.
+	 * @internal
+	 */
 	public function computeChds()
 	{
 		if ( $this->scale === null ) {
@@ -287,6 +292,7 @@ class GoogleChart extends GoogleChartApi
 		}
 		return $this->scale['min'].','.$this->scale['max'];
 	}
+//@}
 
 /**
  * @name Chart title and style (chtt, chts)
@@ -414,7 +420,7 @@ class GoogleChart extends GoogleChartApi
 //@}
 
 /** 
- * @name Chart Legend Text and Style (chdl, chdlp)
+ * @name Chart Legend Text and Style (@c chdl, @c chdlp, @c chma)
  */
 //@{
 
@@ -468,6 +474,22 @@ class GoogleChart extends GoogleChartApi
 	public function setLegendSkipEmpty($skip_empty)
 	{
 		$this->legend_skip_empty = (bool) $skip_empty;
+		return $this;
+	}
+
+	/**
+	 * Size of the legend box (@c chma).
+	 *
+	 * @since 0.5
+	 * @param $width (int)
+	 * @param $height (int)
+	 */
+	public function setLegendSize($width, $height)
+	{
+		$this->legend_size = array(
+			'width' => $width,
+			'heigh' => $height
+		);
 		return $this;
 	}
 
@@ -538,6 +560,11 @@ class GoogleChart extends GoogleChartApi
 	/**
 	 * Set a solid background (fill) for an area (@c chf).
 	 *
+	 * @param $color (string) RGB color
+	 * @param $area One of the following:
+	 * - GoogleChart::BACKGROUND for the whole background
+	 * - GoogleChart::CHART_AREA for only the chart area background
+	 * @return $this
 	 */
 	public function setFill($color, $area = self::BACKGROUND)
 	{
@@ -551,6 +578,9 @@ class GoogleChart extends GoogleChartApi
 
 	/**
 	 * Set the opacity for solid background (fill).
+	 * 
+	 * @param $opacity (int) Between 0 (transparent) and 100 (opaque)
+	 * @return $this
 	 */
 	public function setOpacity($opacity)
 	{
@@ -686,21 +716,6 @@ class GoogleChart extends GoogleChartApi
 	}
 
 	/**
-	 * Size of the legend box (@c chma).
-	 *
-	 * @since 0.5
-	 */
-	public function setLegendSize($width, $height)
-	{
-		//~ $this->chma = true;
-		$this->legend_size = array(
-			'width' => $width,
-			'heigh' => $height
-		);
-		return $this;
-	}
-
-	/**
 	 * @internal
 	 */
 	public function computeChma()
@@ -789,52 +804,37 @@ class GoogleChart extends GoogleChartApi
 		}
 	}
 
+	/**
+	 * @internal
+	 * @since 0.5
+	 */
 	protected function computeScale(array & $q)
 	{
-		switch ( $this->autoscale ) {
-			// no global autoscale, we don't need to do this first pass
-			// if a global scale has been set, it will be used
-			case self::AUTOSCALE_OFF :
-				return;
+		if ( ! $this->autoscale )
+			return $this;
 
-			// The scale is the range of the Y axis
-			case self::AUTOSCALE_Y_AXIS:
-				if ( $this->autoscale_axis !== null ) {
-					$range = $this->autoscale_axis->getRange(false);
-					if ( $range !== null ) {
-						$this->scale = array('min'=>$range['start_val'], 'max' => $range['end_val']);
-					}
-				}
-				return;
+		$value_min = 0;
+		$value_max = 0;
+
+		foreach ( $this->data as $i => $d ) {
+			$values = $d->getValues();
+			if ( $values === null )
+				continue;
 			
-			// this is the most complicated: we need to do a first pass to
-			// get the max and the min of all the data series
-			case self::AUTOSCALE_VALUES:
-				$value_min = 0;
-				$value_max = 0;
-
-				foreach ( $this->data as $i => $d ) {
-					$values = $d->getValues();
-					if ( $values === null )
-						continue;
-					
-					$max = max($values);
-					$min = min($values);
-					if ( $max > $value_max ) {
-						$value_max = $max;
-					}
-					if ( $min < $value_min ) {
-						$value_min = $min;
-					}
-				}
-				
-				if ( $value_min > 0 )
-					$value_min = 0;
-
-				$this->scale = array('min' => $value_min, 'max' => $value_max);
-				return;
+			$max = max($values);
+			$min = min($values);
+			if ( $max > $value_max ) {
+				$value_max = $max;
+			}
+			if ( $min < $value_min ) {
+				$value_min = $min;
+			}
 		}
 		
+		if ( $value_min > 0 )
+			$value_min = 0;
+
+		$this->scale = array('min' => $value_min, 'max' => $value_max);
 		return $this;
 	}
 
@@ -873,7 +873,7 @@ class GoogleChart extends GoogleChartApi
 			if ( $d->hasValues() ) {
 				$data[] = $d->computeChd($this->data_format, $this->scale);
 				// compute per-data scale only if autoscale if off
-				if ( $this->autoscale == self::AUTOSCALE_OFF && ! $this->scale ) {
+				if ( ! $this->autoscale && ! $this->scale ) {
 					$scales[] = $d->computeChds();
 					if ( $d->hasCustomScale() ) {
 						$scale_needed = true;

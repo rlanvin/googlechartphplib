@@ -10,7 +10,7 @@ $values2 = array(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130);
 
 $chart = new GoogleBarChart('bvg', 500, 200);
 $chart->setDataFormat(GoogleChart::TEXT);
-$chart->setAutoscale(GoogleChart::AUTOSCALE_OFF);
+$chart->setAutoscale(false);
 
 $data1 = new GoogleChartData($values1);
 $data1->setAutoscale(false);

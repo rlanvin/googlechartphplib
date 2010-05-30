@@ -3,6 +3,7 @@
 require '../lib/GoogleChart.php';
 
 $chart = new GoogleChart('lc', 500, 200);
+$chart->setScale(0,100);
 
 $line = new GoogleChartData(array(10,12,15,20,22,50,60,63,58,75,67,80));
 $chart->addData($line);

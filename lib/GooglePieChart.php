@@ -31,6 +31,12 @@ class GooglePieChart extends GoogleChart
 
 	protected $c = null;
 
+	public function __construct($type, $width, $height)
+	{
+		parent::__construct($type, $width, $height);
+		$this->setScale(0,100);
+	}
+
 	public function setRotation($rotation)
 	{
 		$this->rotation = $rotation;
@@ -48,5 +54,8 @@ class GooglePieChart extends GoogleChart
 		}
 
 		parent::compute($q);
+		 // pie chart doesn't support data scaling.
+		 // however, i still want to compute a scale for encoding format
+		unset($q['chds']);
 	}
 }

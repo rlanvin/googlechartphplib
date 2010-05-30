@@ -5,7 +5,7 @@ require '../lib/markers/GoogleChartLineMarker.php';
 
 $values = array();
 for ($i = 0; $i <= 10; $i += 1) {
-	$values[] = rand(20,80);
+	$values[] = rand(0,100);
 }
 
 $chart = new GoogleChart('bvs', 500, 200);

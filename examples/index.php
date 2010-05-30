@@ -13,7 +13,7 @@
 	$files = glob('*');
 	$this_file = basename(__FILE__);
 	foreach ( $files as $f ) {
-		if ( $f === $this_file )
+		if ( $f === $this_file || ! is_file($f) )
 			continue;
 
 		printf(

@@ -146,6 +146,7 @@ function bar()
 	$values = array(10,20,30,40,50,60,70,60,50,40,30,20,10);
 
 	$chart = new GoogleChart('bvs', 400, 200);
+	$chart->setScale(0,100);
 	$chart->setGridLines(100, 20, 1, 1);
 	$chart->setFill('9FC2D6', GoogleChart::CHART_AREA);
 	$chart->setFill('73A2BD');

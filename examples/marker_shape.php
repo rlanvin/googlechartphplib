@@ -9,6 +9,7 @@ for ($i = 0; $i <= 10; $i += 1) {
 }
 
 $chart = new GoogleChart('lc', 500, 200);
+$chart->setScale(0,100);
 $data = new GoogleChartData($values);
 $chart->addData($data);
 

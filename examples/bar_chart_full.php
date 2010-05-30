@@ -13,6 +13,7 @@ for ($i = 0; $i <= 10; $i += 1) {
 }
 
 $chart = new GoogleChart('bvs', 500, 200);
+$chart->setScale(0,100);
 $data0 = new GoogleChartData($values[0]);
 $chart->addData($data0);
 
