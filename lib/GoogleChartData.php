@@ -41,9 +41,9 @@ class GoogleChartData
 	protected $chco = false;
 	/**
 	 * Color of the data serie (string or array)
-	 * Default color by Google Chart API is FF9900
+	 * Default color by Google Chart API is ffcc33
 	 */
-	protected $color = 'ff9900';
+	protected $color = 'ffcc33';
 
 	/**
 	 * Indicate if @c chls parameter is needed
@@ -103,9 +103,39 @@ class GoogleChartData
 		return $this->values;
 	}
 
-	public function computeChd()
+	/**
+	 * @since 0.5
+	 */
+	public function hasValues()
 	{
-		$values = $this->values;
+		return $this->values !== null && ! empty($this->values);
+	}
+	
+	/**
+	 * @since 0.5
+	 */
+	public function computeChd($encoding = GoogleChart::TEXT, $scale = null)
+	{
+		// if scale is null, it means that there is not "global" scale for the chart
+		// hence we need to determine the scale for this data only
+		if ( $scale === null ) {
+			$scale = $this->getScale();
+		}
+
+		switch ( $encoding ) {
+			case GoogleChart::TEXT :
+				return self::encodeText($this->values, $scale['min'], $scale['max']);
+			case GoogleChart::SIMPLE_ENCODING :
+				return self::encodeSimple($this->values, $scale['min'], $scale['max']);
+			case GoogleChart::EXTENDED_ENCODING :
+				return self::encodeExtended($this->values, $scale['min'], $scale['max']);
+			default:
+				throw new InvalidArgumentException('Invalid encoding format');
+		}
+	}
+	
+	static public function encodeText(array $values)
+	{
 		foreach ( $values as & $v ) {
 			if ( $v === null ) {
 				$v = '_';
@@ -113,6 +143,83 @@ class GoogleChartData
 		}
 		return implode(',',$values);
 	}
+
+	static public function encodeSimple(array $values, $min = null, $max = null)
+	{
+		if ( $min === null ) {
+			$min = min($values);
+			// by default, we only want a min if there is negative values
+			if ( $min > 0 ) {
+				$min = 0;
+			}
+		}
+		if ( $max === null ) {
+			$max = max($values);
+		}
+		$max = $max + abs($min);
+
+		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		$str = '';
+		
+		foreach ( $values as $v ) {
+			if ( $v === null ) {
+				$str .= '_';
+				continue;
+			}
+			
+			$n = round(61 * (($v - $min) / $max));
+			if ( $n > 61 ) {
+				$str .= '9';
+			}
+			elseif ( $n < 0 ) {
+				$str .= '_';
+			}
+			else {
+				$str .= $map[$n];
+			}
+		}
+		return $str;
+	}
+	
+	static public function encodeExtended(array $values, $min = null, $max = null)
+	{
+		if ( $min === null ) {
+			$min = min($values);
+			// by default, we only want a min if there is negative values
+			if ( $min > 0 ) {
+				$min = 0;
+			}
+		}
+		if ( $max === null ) {
+			$max = max($values);
+		}
+		$max = $max + abs($min);
+
+		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
+		$str = '';
+		
+		foreach ( $values as $v ) {
+			if ( $v === null ) {
+				$str .= '__';
+				continue;
+			}
+
+			$n = floor(64 * 64 * (($v - $min) / $max));
+			if ( $n > (64*64 - 1) ) {
+				$str .= '..';
+			}
+			elseif ( $n < 0 ) {
+				$str .= '__';
+			}
+			else {
+				$q = floor($n / 64);
+				$r = $n - 64 * $q;
+				$str .= $map[$q].$map[$r];
+			}
+		}
+		return $str;
+	}
+
 /**
  * @name Pie Chart Labels @c chl
  */
@@ -227,27 +334,33 @@ class GoogleChartData
 		return $this;
 	}
 
-	public function getScale($compute = true)
+	public function getScale()
 	{
-		if ( ! $compute )
-			return $this->scale;
-
 		if ( $this->autoscale == true ) {
 			if ( ! empty($this->values) ) {
-				return min($this->values).','.max($this->values);
+				$n = min($this->values);
+				if ( $n > 0 )
+					$n = 0;
+				return array('min' => $n, 'max' => max($this->values));
 			}
 		}
-		
-		if ( $this->scale == null ) {
-			return '0,100';
+
+		if ( $this->scale === null ) {
+			return array('min' => 0, 'max' => 100);
 		}
 
-		return $this->scale['min'].','.$this->scale['max'];
+		return $this->scale;
+	}
+	
+	public function computeChds()
+	{
+		$scale = $this->getScale();
+		return $scale['min'].','.$scale['max'];
 	}
 
 	public function hasCustomScale()
 	{
-		return $this->scale !== null;
+		return $this->scale !== null || $this->autoscale;
 	}
 
 	/**

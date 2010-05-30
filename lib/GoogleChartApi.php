@@ -48,7 +48,7 @@ class GoogleChartApi
 	/**
 	 * GET or POST
 	 */
-	protected $query_method = null;
+	protected $query_method = self::POST;
 
 	/**
 	 * Set a parameter.
@@ -180,7 +180,7 @@ class GoogleChartApi
 
 		switch ( $this->query_method ) {
 			case self::GET:
-				$url = $this->getUrl();
+				$url = $this->getUrl(false);
 				$image = file_get_contents($url);
 				break;
 			case self::POST:

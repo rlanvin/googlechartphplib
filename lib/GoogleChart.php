@@ -55,6 +55,10 @@ class GoogleChart extends GoogleChartApi
 	const BACKGROUND = 'bg';
 	const CHART_AREA = 'c';
 
+	const TEXT = 't';
+	const SIMPLE_ENCODING = 's';
+	const EXTENDED_ENCODING = 'e';
+
 	/**
 	 * Store the type of the chart as string.
 	 */
@@ -74,6 +78,16 @@ class GoogleChart extends GoogleChartApi
 	 * List of all data series (GoogleChartData)
 	 */
 	protected $data = array();
+
+	/**
+	 * Data format (text, simple encoding or extended encoding)
+	 */
+	protected $data_format = self::TEXT;
+	protected $data_separator = array(
+		self::TEXT => '|',
+		self::SIMPLE_ENCODING => ',',
+		self::EXTENDED_ENCODING => ','
+	);
 
 	/**
 	 * List of all axes (GoogleChartAxis)
@@ -97,8 +111,9 @@ class GoogleChart extends GoogleChartApi
 	protected $title_color = '000000';
 	protected $title_size = '12';
 
-	protected $autoscale = null;
+	protected $autoscale = self::AUTOSCALE_Y_AXIS;
 	protected $autoscale_axis = null;
+	protected $scale = null;
 
 	protected $legend_position = null;
 	protected $legend_label_order = null;
@@ -128,8 +143,21 @@ class GoogleChart extends GoogleChartApi
 		$this->width = $width;
 		$this->height = $height;
 
-		$this->setAutoscale(self::AUTOSCALE_Y_AXIS);
-		$this->setQueryMethod(self::POST);
+		//~ $this->setAutoscale(self::AUTOSCALE_Y_AXIS);
+		//~ $this->setQueryMethod(self::POST);
+	}
+
+	/**
+	 * Change the data format used by the chart.
+	 * @since 0.5
+	 */
+	public function setDataFormat($format)
+	{
+		if ( $format !== self::TEXT && $format !== self::SIMPLE_ENCODING && $format !== self::EXTENDED_ENCODING ) {
+			throw new InvalidArgumentException('Invalid data format');
+		}
+
+		$this->data_format = $format;
 	}
 
 	/**
@@ -234,6 +262,30 @@ class GoogleChart extends GoogleChartApi
 	
 		$this->autoscale = $autoscale;
 		return $this;
+	}
+
+	public function setScale($min, $max)
+	{
+		$this->setAutoscale(self::AUTOSCALE_OFF);
+		
+		$this->scale = array(
+			'min' => $min,
+			'max' => $max
+		);
+		return $this;
+	}
+	
+	public function getScale()
+	{
+		return $this->scale;
+	}
+	
+	public function computeChds()
+	{
+		if ( $this->scale === null ) {
+			throw new LogicException('Cannot compute scale that has not been set');
+		}
+		return $this->scale['min'].','.$this->scale['max'];
 	}
 
 /**
@@ -716,6 +768,7 @@ class GoogleChart extends GoogleChartApi
 		}
 		$this->computeTitle($q);
 
+		$this->computeScale($q);
 		$this->computeData($q);
 		$this->computeMarkers($q);
 		$this->computeAxes($q);
@@ -734,6 +787,55 @@ class GoogleChart extends GoogleChartApi
 				$q['chts'] = $this->computeChts();
 			}
 		}
+	}
+
+	protected function computeScale(array & $q)
+	{
+		switch ( $this->autoscale ) {
+			// no global autoscale, we don't need to do this first pass
+			// if a global scale has been set, it will be used
+			case self::AUTOSCALE_OFF :
+				return;
+
+			// The scale is the range of the Y axis
+			case self::AUTOSCALE_Y_AXIS:
+				if ( $this->autoscale_axis !== null ) {
+					$range = $this->autoscale_axis->getRange(false);
+					if ( $range !== null ) {
+						$this->scale = array('min'=>$range['start_val'], 'max' => $range['end_val']);
+					}
+				}
+				return;
+			
+			// this is the most complicated: we need to do a first pass to
+			// get the max and the min of all the data series
+			case self::AUTOSCALE_VALUES:
+				$value_min = 0;
+				$value_max = 0;
+
+				foreach ( $this->data as $i => $d ) {
+					$values = $d->getValues();
+					if ( $values === null )
+						continue;
+					
+					$max = max($values);
+					$min = min($values);
+					if ( $max > $value_max ) {
+						$value_max = $max;
+					}
+					if ( $min < $value_min ) {
+						$value_min = $min;
+					}
+				}
+				
+				if ( $value_min > 0 )
+					$value_min = 0;
+
+				$this->scale = array('min' => $value_min, 'max' => $value_max);
+				return;
+		}
+		
+		return $this;
 	}
 
 	/**
@@ -766,35 +868,19 @@ class GoogleChart extends GoogleChartApi
 			$labels = array();
 		}
 
-		$value_min = 0;
-		$value_max = 0;
-
 		foreach ( $this->data as $i => $d ) {
-			// data serie values and autoscale
-			$values = $d->getValues();
-
-			if ( $values !== null ) {
-				if ( $this->autoscale == self::AUTOSCALE_VALUES ) {
-					$max = max($values);
-					$min = min($values);
-					if ( $max > $value_max ) {
-						$value_max = $max;
-					}
-					if ( $min < $value_min ) {
-						$value_min = $min;
-					}
-				}
-				elseif ( $this->autoscale == self::AUTOSCALE_OFF ) {
-					// register every values, just in case
-					$scales[] = $d->getScale();
-					// but do not trigger if not needed
+			// data serie values and scale
+			if ( $d->hasValues() ) {
+				$data[] = $d->computeChd($this->data_format, $this->scale);
+				// compute per-data scale only if autoscale if off
+				if ( $this->autoscale == self::AUTOSCALE_OFF && ! $this->scale ) {
+					$scales[] = $d->computeChds();
 					if ( $d->hasCustomScale() ) {
 						$scale_needed = true;
 					}
 				}
-				$data[] = $d->computeChd();
 			}
-			
+
 			// data serie color (chco)
 			$colors[] = $d->computeChco();
 			if ( $colors_needed == false && $d->hasChco() ) {
@@ -824,7 +910,7 @@ class GoogleChart extends GoogleChartApi
 		if ( ! isset($data[0]) )
 			return;
 
-		$q['chd'] = 't:'.implode('|',$data);
+		$q['chd'] = $this->data_format.':'.implode($this->data_separator[$this->data_format],$data);
 
 		if ( $colors_needed ) {
 			$q['chco'] = implode(',',$colors);
@@ -840,26 +926,13 @@ class GoogleChart extends GoogleChartApi
 			}
 		}
 
-		// autoscale
-		switch ( $this->autoscale ) {
-			case self::AUTOSCALE_Y_AXIS:
-				if ( $this->autoscale_axis !== null ) {
-					$range = $this->autoscale_axis->getRange(false);
-					if ( $range !== null ) {
-						$q['chds'] = $range['start_val'].','.$range['end_val'];
-					}
-				}
-				break;
-			case self::AUTOSCALE_VALUES:
-				$q['chds'] = $value_min.','.$value_max;
-				break;
-			// if autoscale if off, then we compute manual scale
-			case self::AUTOSCALE_OFF:
-				if ( $scale_needed ) {
-					$q['chds'] = implode(',', $scales);
-				}
+		if ( $this->scale ) {
+			$q['chds'] = $this->computeChds();
 		}
-		
+		elseif ( $scale_needed && isset($scales[0]) ) {
+			$q['chds'] = implode(',', $scales);
+		}
+
 		// legends
 		if ( $legends_needed ) {
 			$q['chdl'] = implode('|',$legends);
@@ -874,6 +947,7 @@ class GoogleChart extends GoogleChartApi
 		return $this;
 	}
 
+	
 	/**
 	 * Compute the markers.
 	 * @internal
@@ -897,7 +971,7 @@ class GoogleChart extends GoogleChartApi
 				// get the data serie index
 				$index = $data->getIndex();
 				if ( $index === null ) {
-					$additional_data[] = $data->computeChd();
+					$additional_data[] = $data->computeChd($this->data_format);
 					$index = $current_index;
 					$current_index += 1;
 				}
@@ -926,7 +1000,7 @@ class GoogleChart extends GoogleChartApi
 
 		// append every additional_data to 'chd'
 		if ( isset($additional_data[0]) ) {
-			$q['chd'] = 't'.$nb_data_series.substr($q['chd'],1).'|'.implode('|',$additional_data);
+			$q['chd'] = $this->data_format.$nb_data_series.substr($q['chd'],1).$this->data_separator[$this->data_format].implode($this->data_separator[$this->data_format],$additional_data);
 		}
 	}
 
@@ -988,6 +1062,7 @@ class GoogleChart extends GoogleChartApi
 
 		return $this;
 	}
+
 //@}
 
 

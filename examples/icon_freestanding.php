@@ -6,5 +6,13 @@ $chart = new GoogleChartIconNote('Hello world');
 $chart->setTitle('Example');
 $chart->setTextColor('D01F3C');
 
-header('Content-Type: image/png');
-echo $chart;
+if ( isset($_GET['debug']) ) {
+	var_dump($chart->getQuery());
+	echo $chart->validate();
+	echo $chart->toHtml();
+}
+else{
+	header('Content-Type: image/png');
+	echo $chart;
+}
+

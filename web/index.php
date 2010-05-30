@@ -27,11 +27,11 @@
 			<ul>
 				<li>Generation of the chart is <strong>blazing fast</strong>.</li>
 				<li>It doesn't require <strong>any additional PHP modules</strong> (like GD or imagemagick).</li>
-				<li>You the generated URL in a <code>img</code> HTML tag and <strong>save bandwith</strong>.</li>
+				<li>You can use the generated URL in a <code>img</code> HTML tag and <strong>save bandwith</strong>.</li>
 				<li>Or, you can fetch the PNG image and <strong>cache it locally</strong>.</li>
 			</ul>
 
-			<p>Of course, there is one drawback: you rely on an external tool to generate you charts. Hence you might want to consider other libraries to create charts with <strong>highly confidential data</strong> (<a href="http://code.google.com/intl/fr-FR/apis/chart/faq.html#logging" rel="nofollow">Charts are cached into Google's servers for 2 weeks</a>), or if you create an internal application with no internet access.</p>
+			<p>Of course, there is one drawback: you rely on an external tool to generate your charts. Hence you might want to consider other libraries to create charts with <strong>highly confidential data</strong> (<a href="http://code.google.com/intl/fr-FR/apis/chart/faq.html#logging" rel="nofollow">Charts are cached into Google's servers for 2 weeks</a>), or if you create an internal application with no internet access.</p>
 
 			<h2>See it in action!</h2>
 
@@ -41,7 +41,7 @@
 
 			<p class="chart"><img src="<?=map()?>" alt="Map Chart" title="Map Chart"></p>
 
-			<p>All examples are powered by Google Chart PHP Library. This is only a small excerpt of all the different charts offered by Google Chart API. If you want to know, take a look at <a href="http://code.google.com/intl/fr-FR/apis/chart/docs/gallery/chart_gall.html" rel="nofollow">the Chart Gallery from the official documentation</a>.</p>
+			<p>All examples are powered by Google Chart PHP Library. This is only a small excerpt of all the different charts offered by Google Chart API. If you want to know more, take a look at <a href="http://code.google.com/intl/fr-FR/apis/chart/docs/gallery/chart_gall.html" rel="nofollow">the Chart Gallery from the official documentation</a>.</p>
 
 
 			<h2>Care to help?</h2>
