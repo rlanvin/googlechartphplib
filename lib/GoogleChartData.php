@@ -69,6 +69,9 @@ class GoogleChartData
 	 *  Line fill values (to fill area below a line). (@c chm)
 	 */
 	protected $fill = null;
+	
+	protected $fill_slices = array();
+
 	/**
 	 *  bool Wether to calculate scale automatically or not.
 	 */
@@ -382,33 +385,77 @@ class GoogleChartData
 	}
 //@}
 
+/**
+ * @name Line fill (chm). Line and radar charts only.
+ */
+//@{
 	/**
-	 * Line fill (chm)
+	 * Line fill
+	 *
+	 * @param $color (string) RRGGBB color. Supports transparency if you uses
+	 * RRGGBBAA format.
+	 *
+	 * @param $end_line (int) On a multi-line chart, if you want to fill only
+	 * between two lines, you can specify the index of the line at which to stop
+	 * the filling.
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_fills
 	 */
-	public function setFill($color)
+	public function setFill($color, $end_line = 0)
 	{
 		$this->fill = array(
-			'color' => $color
+			'color' => $color,
+			'end_line' => $end_line
+		);
+	}
+
+	/**
+	 * @since 0.5
+	 */
+	public function addFillSlice($color, $start, $stop)
+	{
+		$this->fill_slices[] = array(
+			'color' => $color,
+			'start' => $start,
+			'stop' => $stop
 		);
 	}
 
 	/**
 	 * @todo Move to compute*
 	 */
-	public function getFill($compute = true)
+	public function computeChm($index)
 	{
-		if ( ! $compute )
-			return $this->fill;
-		
-		if ( $this->fill === null )
+		if ( $this->fill === null && ! isset($this->fill_slices[0]) )
 			return null;
 
-		$fill = 'B,'.$this->fill['color'].',%d,0,0';
+		$fill = array();
 
-		return $fill;
+		if ( $this->fill !== null ) {
+			$fill[] = sprintf(
+				'%s,%s,%d,%d,0',
+				$this->fill['end_line'] == 0 ? 'B' : 'b',
+				$this->fill['color'],
+				$index,
+				$this->fill['end_line']
+			);
+		}
+
+		if ( isset($this->fill_slices[0]) ) {
+			foreach ( $this->fill_slices as $f ) {
+				$fill[] = sprintf(
+					'B,%s,%d,%d:%d,0',
+					$f['color'],
+					$index,
+					$f['start'],
+					$f['stop']
+				);
+			}
+		}
+		return implode('|',$fill);
 	}
+//@}
+
 
 /**
  * @name Line styles (chls).

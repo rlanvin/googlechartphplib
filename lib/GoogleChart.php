@@ -893,9 +893,9 @@ class GoogleChart extends GoogleChartApi
 				$styles_needed = true;
 			}
 
-			$tmp = $d->getFill();
+			$tmp = $d->computeChm($i);
 			if ( $tmp ) {
-				$fills[] = sprintf($tmp, $i);
+				$fills[] = $tmp;
 			}
 			
 			$legends[] = $d->getLegend();
