@@ -213,7 +213,7 @@ class GoogleChartApi
 			'http' => array(
 				'method' => 'POST',
 				'header'  => 'Content-type: application/x-www-form-urlencoded',
-				'content' => http_build_query($q)
+				'content' => http_build_query($q, '', '&')
 			)
 		));
 
@@ -235,11 +235,11 @@ class GoogleChartApi
  * Debug
  * -------------------------------------------------------------------------- */
  
-	public function getValidationUrl()
+	public function getValidationUrl($escape_amp = true)
 	{
 		$q = $this->computeQuery();
 		$q['chof'] = 'validate';
-		$url = self::BASE_URL.'?'.http_build_query($q);
+		$url = self::BASE_URL.'?'.http_build_query($q, '', $escape_amp?'&amp;':'&');
 		return $url;
 	}
 
