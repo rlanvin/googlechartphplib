@@ -401,7 +401,7 @@ class GoogleChartData
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_line_fills
 	 */
-	public function setFill($color, $end_line = 0)
+	public function setFill($color, $end_line = null)
 	{
 		$this->fill = array(
 			'color' => $color,
@@ -434,7 +434,7 @@ class GoogleChartData
 		if ( $this->fill !== null ) {
 			$fill[] = sprintf(
 				'%s,%s,%d,%d,0',
-				$this->fill['end_line'] == 0 ? 'B' : 'b',
+				$this->fill['end_line'] === null ? 'B' : 'b',
 				$this->fill['color'],
 				$index,
 				$this->fill['end_line']
