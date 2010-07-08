@@ -594,10 +594,12 @@ class GoogleChartData
 			$max = max($values);
 		}
 		$max = $max + abs($min);
+		if ( $max == 0 )
+			return '';
 
 		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
 		$str = '';
-		
+
 		foreach ( $values as $v ) {
 			if ( $v === null ) {
 				$str .= '__';
