@@ -818,7 +818,7 @@ class GoogleChart extends GoogleChartApi
 
 		foreach ( $this->data as $i => $d ) {
 			$values = $d->getValues();
-			if ( $values === null )
+			if ( $values === null || empty($values) )
 				continue;
 			
 			$max = max($values);
