@@ -412,12 +412,19 @@ class GoogleChartData
 	/**
 	 * @since 0.5
 	 */
-	public function addFillSlice($color, $start, $stop)
+	public function addFillSlice($color, $start = null, $stop = null)
 	{
+		if ( $start !== null && ! is_numeric($start) ) {
+			throw new InvalidArgumentException('Invalid start index (must be NULL or numeric)');
+		}
+		if ( $stop !== null && ! is_numeric($stop) ) {
+			throw new InvalidArgumentException('Invalid stop index (must be NULL or numeric)');
+		}
+
 		$this->fill_slices[] = array(
 			'color' => $color,
-			'start' => $start,
-			'stop' => $stop
+			'start' => $start === null ? null : intval($start),
+			'stop' => $stop === null ? null : intval($stop)
 		);
 	}
 
@@ -444,7 +451,7 @@ class GoogleChartData
 		if ( isset($this->fill_slices[0]) ) {
 			foreach ( $this->fill_slices as $f ) {
 				$fill[] = sprintf(
-					'B,%s,%d,%d:%d,0',
+					'B,%s,%d,%s:%s,0',
 					$f['color'],
 					$index,
 					$f['start'],
