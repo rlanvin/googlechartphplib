@@ -539,6 +539,12 @@ class GoogleChartData
 			if ( $v === null ) {
 				$v = '_';
 			}
+			else {
+				// we can't rely on PHP's default display for float values, as
+				// float are actually displayed differently depending on the
+				// current locale.
+				$v = number_format($v, 2, '.', '');
+			}
 		}
 		return implode(',',$values);
 	}
