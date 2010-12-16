@@ -192,6 +192,16 @@ class GoogleChartApi
 	}
 
 	/**
+	 * Returns the image as a GD resource.
+	 * @return ressource or false
+	 * @since 0.6
+	 */
+	public function getImageGD()
+	{
+		return imagecreatefromstring($this->getImage());
+	}
+
+	/**
 	 * Shortcut for getImage().
 	 */
 	public function __toString()
