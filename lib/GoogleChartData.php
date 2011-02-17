@@ -634,4 +634,84 @@ class GoogleChartData
 		}
 		return $str;
 	}
+
+	/**
+	* linear regression function
+	* 
+	* @param $data array Points to calculate
+	* @returns array() m=>slope, b=>intercept
+	*/
+	static public function calculateLinearRegression($data)
+	{
+		// calculate number points
+		$n = count($data);
+
+		$x = array_keys($data);
+		$y = array_values($data);
+
+		// calculate sums
+		$x_sum = array_sum($x);
+		$y_sum = array_sum($y);
+
+		$xx_sum = 0;
+		$xy_sum = 0;
+
+		for($i = 0; $i < $n; $i++) {
+
+			$xy_sum+=($x[$i]*$y[$i]);
+			$xx_sum+=($x[$i]*$x[$i]);
+
+		}
+
+		// calculate slope
+		$m = (($n * $xy_sum) - ($x_sum * $y_sum)) / (($n * $xx_sum) - ($x_sum * $x_sum));
+
+		// calculate intercept
+		$b = ($y_sum - ($m * $x_sum)) / $n;
+
+		// return result
+		return array($m, $b);
+	}
+
+	/**
+	 * Function that creates a new GoogleChartData element with trend points based
+	 * on the current values.
+	 *
+	 * @return GoogleChartData Trend data
+	 */
+	public function createTrendData()
+	{
+		if(!$this->hasValues())
+			return null;
+
+		list($slope, $intercept) = self::calculateLinearRegression(array_values($this->values));
+
+		$n = sizeof($this->values);
+		$array = array();
+		$v = $intercept;
+
+		for ( $i = 1; $i <= $n; $i++ ) {
+			$v += $slope;
+			$array[] = round($v,2);
+		}
+
+		return new self($array);
+	}
+
+	/**
+	 * Function that returns a LineMarker that indicates the trend of the contained
+	 * data.
+	 *
+	 * @return GoogleChartLineMarker Trend line
+	 */
+	public function createTrendMarker()
+	{
+		if(!$this->hasValues())
+			return null;
+
+		$marker = new GoogleChartLineMarker();
+		$marker->setData($this->createTrendData());
+
+		return $marker;
+	}
 }
