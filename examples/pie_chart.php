@@ -22,7 +22,7 @@ $chart->addData(new GoogleChartData(array(10,20,30)));
 $data = new GoogleChartData(array(50,50));
 $chart->addData($data);
 		
-$q = $chart->getQuery();
+$chart->setQueryMethod(GoogleChartApi::GET);
 $data->setLabels(array('Foo','Bar'));
 
 if ( isset($_GET['debug']) ) {
@@ -34,3 +34,4 @@ else {
 	header('Content-Type: image/png');
 	echo $chart;
 }
+

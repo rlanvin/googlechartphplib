@@ -113,7 +113,7 @@ class GoogleMapChart extends GoogleChart
 	protected function compute(array & $q)
 	{
 		if ( ! isset($this->data[0]) )
-			throw new Exception('Map Chart needs one data serie.');
+			throw new RuntimeException('Map Chart needs one data serie.');
 
 		$v = $this->data[0]->getValues();
 		$q['chd'] = 't:'.implode(',',$v);

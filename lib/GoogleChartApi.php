@@ -28,6 +28,8 @@ class GoogleChartApi
 	 */
 	const BASE_URL = 'http://chart.apis.google.com/chart';
 
+	// HTTPS url = https://chart.googleapis.com/chart
+
 	/**
 	 * GET method
 	 */

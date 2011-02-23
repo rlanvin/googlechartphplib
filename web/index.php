@@ -65,7 +65,7 @@
 			</ul>
 			<h3 class="documentation">Learn</h3>
 			<ul>
-				<li><a href="http://code.google.com/p/googlechartphplib/w/list">Read the wiki</a></li>
+				<li><a href="http://code.google.com/p/googlechartphplib/wiki/GettingStarted">Read the wiki</a></li>
 				<li><a href="http://googlechartphplib.cloudconnected.fr/doc">Browse the documentation</a></li>
 				<li><a href="http://code.google.com/intl/fr-FR/apis/chart/docs/making_charts.html" rel="nofollow">Check Google Chart API doc</a></li>
 			</ul>
