@@ -231,7 +231,7 @@ function sparklines()
 	return $chart->getUrl();
 }
 
-function current_version($version = '0.4')
+function current_version($version = '0.6')
 {
 	$text = "Current version\n is ".$version;
 	$chart = new GoogleChartIconNote($text);

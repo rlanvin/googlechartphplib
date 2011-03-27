@@ -16,7 +16,7 @@
 	</div>
 
 	<div id="main">
-		<p id="version"><a href="http://code.google.com/p/googlechartphplib/downloads/list" title="This icon is powered by Google Chart PHP Library too."><?=current_version()?></a></p>
+		<p id="version"><a href="http://code.google.com/p/googlechartphplib/downloads/list" title="This icon is powered by Google Chart PHP Library too."><?=current_version('0.6')?></a></p>
 
 		<div id="content">
 			<p>Google Chart PHP Library is a <strong>open-source</strong> (MIT License) and <strong>free to use</strong> wrapper for the awesome <a href="http://code.google.com/intl/fr-FR/apis/chart/docs/making_charts.html">Google Chart API</a>, a tool provided by Google to create PNG charts using a simple HTTP request. Google Chart PHP Library aims to to simplify the request generation by offering a <strong>high-level object-oriented PHP interface</strong>.</p>
