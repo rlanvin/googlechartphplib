@@ -18,7 +18,7 @@ require_once 'GoogleChartMarker.php';
 /**
  * A chart.
  *
- * This class represent a chart. It provides a bunch of setters to customize it.
+ * This class represents any chart. It provides a bunch of setters to customize it.
  * When creating a new chart, you need to specify 3 things:
  * - type of the chart (see http://code.google.com/apis/chart/docs/gallery/chart_gall.html)
  * - width
@@ -112,14 +112,18 @@ class GoogleChart extends GoogleChartApi
 	protected $chts = false;
 	protected $title = null;
 	protected $title_color = '000000';
-	protected $title_size = '12';
+	protected $title_size = 12;
 
 	protected $autoscale = true;
 	protected $scale = null;
 
-	protected $legend_position = null;
+	protected $legend_position = 'r';
 	protected $legend_label_order = null;
 	protected $legend_skip_empty = true;
+	
+	protected $chdls = false;
+	protected $legend_color = '000000';
+	protected $legend_size = 12;
 
 	protected $fills = null;
 
@@ -127,7 +131,7 @@ class GoogleChart extends GoogleChartApi
 
 	//~ protected $chma = false;
 	protected $margin = null;
-	protected $legend_size = null;
+	protected $legendbox_size = null;
 
 	/**
 	 * Create a new chart.
@@ -166,13 +170,23 @@ class GoogleChart extends GoogleChartApi
 	/**
 	 * Add a data serie to the chart.
 	 *
-	 * @param $data (GoogleChartData)
+	 * @param $data (GoogleChartData|array) If $data is an array, a default
+	 * instance of GoogleChartData will be create. That is a useful shortchut,
+	 * but doesn't allow for customization.
+	 *
 	 * @see GoogleChartData
 	 */
-	public function addData(GoogleChartData $data)
+	public function addData($data)
 	{
+		if ( is_array($data) ) {
+			$data = new GoogleChartData($data);
+		}
+		elseif ( ! $data instanceof GoogleChartData ) {
+			throw new InvalidArgumentException('Invalid data (must be an instance of GoogleChartData or an array).');
+		}
+
 		if ( $data->hasIndex() )
-			throw new LogicException('Invalid data serie. This data serie has already been added.');
+			throw new LogicException('Invalid data series. This data series has already been added.');
 
 		$index = array_push($this->data, $data);
 		$data->setIndex($index - 1);
@@ -301,14 +315,24 @@ class GoogleChart extends GoogleChartApi
 	/**
 	 * Set the chart title (@c chtt).
 	 *
+	 * Use \n to insert a line break.
+	 *
 	 * @param $title (string)
+	 * @param $color (string) (optional) The color in RRGGBB format. See setTitleColor()
+	 * @param $size (string) (optional) The size in points. See setTitleSize()
 	 *
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
 	 * @return $this
 	 */
-	public function setTitle($title)
+	public function setTitle($title, $color = null, $size = null)
 	{
 		$this->title = $title;
+		if ( $color ) {
+			$this->setTitleColor($color);
+		}
+		if ( $size ) {
+			$this->setTitleSize($size);
+		}
 		return $this;
 	}
 
@@ -338,7 +362,7 @@ class GoogleChart extends GoogleChartApi
 	/**
 	 * Set the color of the title (@c chts).
 	 *
-	 * @param $color (string in ) The title color, in RRGGBB hexadecimal format. Default color is black.
+	 * @param $color (string) The title color, in RRGGBB hexadecimal format. Default color is black.
 	 *
 	 * @since 0.4
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_chart_title
@@ -383,7 +407,7 @@ class GoogleChart extends GoogleChartApi
 	 * Returns the title size.
 	 *
 	 * If no title size has been set using setTitleSize(), it will returns the
-	 * default title color.
+	 * default title size.
 	 *
 	 * @since 0.4
 	 * @return string
@@ -420,7 +444,7 @@ class GoogleChart extends GoogleChartApi
 //@}
 
 /** 
- * @name Chart Legend Text and Style (@c chdl, @c chdlp, @c chma)
+ * @name Chart Legend Text and Style (@c chdl, @c chdls, @c chdlp, @c chma)
  */
 //@{
 
@@ -480,13 +504,15 @@ class GoogleChart extends GoogleChartApi
 	/**
 	 * Size of the legend box (@c chma).
 	 *
+	 * Renamed setLegendBoxSize since 0.7
+	 *
 	 * @since 0.5
 	 * @param $width (int)
 	 * @param $height (int)
 	 */
-	public function setLegendSize($width, $height)
+	public function setLegendBoxSize($width, $height)
 	{
-		$this->legend_size = array(
+		$this->legendbox_size = array(
 			'width' => $width,
 			'heigh' => $height
 		);
@@ -499,10 +525,8 @@ class GoogleChart extends GoogleChartApi
 	 */
 	public function computeChdlp()
 	{
-		$str = '';
-		if ( $this->legend_position !== null ) {
-			$str .= $this->legend_position;
-		}
+		$str = $this->legend_position;
+
 		if ( $this->legend_skip_empty === true ) {
 			$str .= 's';
 		}
@@ -513,13 +537,72 @@ class GoogleChart extends GoogleChartApi
 	}
 
 	/**
-	 * @internal
-	 * @since 0.4
+	 * Set the color of the legends (@c chdls).
+	 *
+	 * @param $color (string) The title color, in RRGGBB hexadecimal format. Default color is black.
+	 *
+	 * @since 0.7
 	 */
-	public function hasChdlp()
+	public function setLegendColor($color)
 	{
-		return $this->legend_skip_empty === true || $this->legend_position !== null || $this->legend_label_order !== null;
+		$this->chdls = true;
+		$this->legend_color = $color;
+		return $this;
 	}
+
+	/**
+	 * Returns the legends color.
+	 *
+	 * If no title color has been set using setLegendColors(), it will returns
+	 * the default title color.
+	 *
+	 * @since 0.7
+	 * @return string in RRGGBB format
+	 */
+	public function getLegendColor()
+	{
+		return $this->legend_color;
+	}
+
+	/**
+	 * Set the font size of the legends (@c chdls).
+	 *
+	 * @param $size (int) Font size of the legends, in points.
+	 *
+	 * @since 0.7
+	 */
+	public function setLegendSize($size)
+	{
+		$this->chdls = true;
+		$this->legend_size = $size;
+		return $this;
+	}
+
+	/**
+	 * Returns the legends size.
+	 *
+	 * If no legends size has been set using setLegendSize(), it will returns the
+	 * default legends size.
+	 *
+	 * @since 0.7
+	 * @return string
+	 */
+	public function getLegendSize()
+	{
+		return $this->legend_size;
+	}
+
+	/** @internal
+	 * Compute @c chdls parameter.
+	 *
+	 * @since 0.7
+	 * @return string or null if the parameter is not needed
+	 */
+	public function computeChdls()
+	{
+		return $this->legend_color.','.$this->legend_size;
+	}
+
 //@}
 
 	/**
@@ -724,7 +807,7 @@ class GoogleChart extends GoogleChartApi
 		if ( $this->margin ) {
 			$str = implode(',',$this->margin);
 		}
-		if ( $this->legend_size ) {
+		if ( $this->legendbox_size ) {
 			$str .= '|'.implode(',',$this->legend_size);
 		}
 		return $str;
@@ -936,8 +1019,9 @@ class GoogleChart extends GoogleChartApi
 		// legends
 		if ( $legends_needed ) {
 			$q['chdl'] = implode('|',$legends);
-			if ( $this->hasChdlp() ) {
-				$q['chdlp'] = $this->computeChdlp();
+			$q['chdlp'] = $this->computeChdlp();
+			if ( $this->chdls ) {
+				$q['chdls'] = $this->computeChdls();
 			}
 		}
 
