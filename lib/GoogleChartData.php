@@ -11,9 +11,9 @@
  */
  
 /**
- * A data serie.
+ * A data series.
  *
- * This class implement every feature that is directly related to a data serie
+ * This class implement every feature that is directly related to a data series
  * or its representation in the chart.
  *
  * Some method won't work for all charts, but won't produce an error.
@@ -21,7 +21,7 @@
 class GoogleChartData
 {
 	/**
-	 * An array of the values of the data serie.
+	 * An array of the values of the data series.
 	 */
 	protected $values = null;
 	/**
