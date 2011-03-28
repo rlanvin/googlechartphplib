@@ -818,7 +818,7 @@ class GoogleChart extends GoogleChartApi
 	 */
 	public function hasChma()
 	{
-		return $this->margin !== null || $this->legend_size !== null;
+		return $this->margin !== null || $this->legendbox_size !== null;
 	}
 
 //@}

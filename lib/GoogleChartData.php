@@ -97,6 +97,12 @@ class GoogleChartData
 		$this->values = $values;
 	}
 
+	public function setValues($values)
+	{
+		$this->values = $values;
+		return $this;
+	}
+
 	/**
 	 * Returns the values of this dataserie
 	 * @return array (or null)
@@ -341,7 +347,7 @@ class GoogleChartData
 //@{
 	/**
 	 * Set the serie color.
-	 * Color can be an array for bar charts and pie charts.
+	 * Color can be an array for bar charts, pie charts and scatter charts.
 	 *
 	 * @param $color (mixed) a RRGGBB string, or an array for Bar Chart and Pie Chart
 	 * @see http://code.google.com/apis/chart/docs/chart_params.html#gcharts_series_color
@@ -367,7 +373,7 @@ class GoogleChartData
 	 * @internal
 	 * @return string
 	 */
-	public function computeChco()
+	public function computeChco($delimiter = '|')
 	{
 		if ( is_array($this->color) )
 			return implode('|',$this->color);
