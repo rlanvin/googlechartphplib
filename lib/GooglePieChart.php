@@ -25,7 +25,8 @@ require_once 'GoogleChart.php';
  */
 class GooglePieChart extends GoogleChart
 {
-	protected $_compute_data_label = true;
+	protected $_data_labels = true;
+	protected $_multiple_legends = true;
 
 	protected $rotation = 0;
 
@@ -54,6 +55,7 @@ class GooglePieChart extends GoogleChart
 		}
 
 		parent::compute($q);
+		
 		 // pie chart doesn't support data scaling.
 		 // however, i still want to compute a scale for encoding format
 		unset($q['chds']);

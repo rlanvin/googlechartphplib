@@ -32,6 +32,8 @@ class GoogleChartData
 	 * The label of the values of the data serie. Pie Chart only.
 	 */
 	protected $labels = null;
+	
+	protected $legends = null;
 
 	/**
 	 * Indicate if the color has been overriden.
@@ -143,72 +145,6 @@ class GoogleChartData
 		}
 	}
 	
-	
-/**
- * @name Pie Chart Labels @c chl
- */
-//@{
-	/**
-	 * @since 0.5
-	 */
-	public function setLabelsAuto()
-	{
-		return $this->setLabels(array_keys($this->values));
-	}
-
-	/**
-	 * @since 0.5
-	 */
-	public function setLabels($labels)
-	{
-		$n = sizeof($labels);
-		$v = sizeof($this->values);
-		if ( $n > $v ) {
-			throw new InvalidArgumentException('Invalid labels, to many labels');
-		}
-		elseif ( $n < $v ) {
-			$labels += array_fill(0, $v-$n, '');
-		}
-
-		$this->labels = $labels;
-		return $this;
-	}
-	
-	/**
-	 * Return labels set by setLabels()
-	 * @return array();
-	 */
-	public function getLabels()
-	{
-		return $this->labels;
-	}
-
-	/**
-	 * Compute @c chl parameter.
-	 *
-	 * Only for Pie Chart.
-	 *
-	 * If the chart has no label, this function returns a string containing
-	 * an empty label for each value (example "|" for 2 values, "||" for 3, etc.).
-	 * This way, labels are always in sync with the values. The case happens
-	 * with a concentric chart, if the inner chart (first data serie) doesn't
-	 * have label, but the outer chart (second data serie) has.
-	 *
-	 * @internal
-	 * @since 0.5
-	 */
-	public function computeChl()
-	{
-		if ( ! $this->values )
-			return '';
-
-		if ( $this->labels === null ) {
-			return str_repeat('|',sizeof($this->values)-1);
-		}
-		return implode('|',$this->labels);
-	}
-//@}
-
 	/**
 	 * Set the index of the data serie in the chart.
 	 *
@@ -312,6 +248,12 @@ class GoogleChartData
 		return $this->scale !== null || $this->autoscale;
 	}
 
+/**
+ * @name Legend @c chdl
+ */
+
+//@{
+
 	/**
 	 * Chart Legend (chdl)
 	 *
@@ -340,6 +282,120 @@ class GoogleChartData
 	{
 		return $this->legend !== null;
 	}
+//@}
+
+/**
+ * @name Pie Chart Labels and Legends @c chl chdl
+ */
+//@{
+	/**
+	 * @since 0.5
+	 */
+	public function setLabelsAuto()
+	{
+		return $this->setLabels(array_keys($this->values));
+	}
+
+	/**
+	 * @since 0.5
+	 */
+	public function setLabels(array $labels)
+	{
+		$n = sizeof($labels);
+		$v = sizeof($this->values);
+		if ( $n > $v ) {
+			throw new InvalidArgumentException('Invalid labels, to many labels');
+		}
+		elseif ( $n < $v ) {
+			$labels = array_merge($labels,array_fill(0, $v - $n, ''));
+		}
+//~ printf("%d <=> %d<br />\n",sizeof($labels), sizeof($this->values));
+		$this->labels = $labels;
+		return $this;
+	}
+	
+	/**
+	 * Return labels set by setLabels()
+	 * @return array();
+	 */
+	public function getLabels()
+	{
+		return $this->labels;
+	}
+
+	/**
+	 * Compute @c chl parameter.
+	 *
+	 * Only for Pie Chart.
+	 *
+	 * If the chart has no label, this function returns a string containing
+	 * an empty label for each value (example "|" for 2 values, "||" for 3, etc.).
+	 * This way, labels are always in sync with the values. The case happens
+	 * with a concentric chart, if the inner chart (first data serie) doesn't
+	 * have label, but the outer chart (second data serie) has.
+	 *
+	 * @internal
+	 * @since 0.5
+	 */
+	public function computeChl()
+	{
+		if ( ! $this->values )
+			return '';
+
+		if ( $this->labels === null ) {
+			return str_repeat('|',sizeof($this->values)-1);
+		}
+		return implode('|',$this->labels);
+	}
+	
+	/**
+	 * @since 0.7
+	 */
+	public function setLegends(array $legends)
+	{
+		$n = sizeof($legends);
+		$v = sizeof($this->values);
+		if ( $n > $v ) {
+			throw new InvalidArgumentException('Invalid legends, to many legends');
+		}
+		elseif ( $n < $v ) {
+			$legends = array_merge($legends,array_fill(0, $v - $n, ''));
+		}
+
+		$this->legends = $legends;
+		return $this;
+	}
+
+	/**
+	 * @since 0.7
+	 */
+	public function getLegends()
+	{
+		return $this->legends;
+	}
+
+	/**
+	 * Compute @c chdl parameter.
+	 *
+	 * Only for Pie Chart.
+	 *
+	 * @see computeChdl()
+	 *
+	 * @internal
+	 * @since 0.7
+	 */
+	public function computeChdl()
+	{
+		if ( ! $this->values )
+			return '';
+
+		if ( $this->legends === null ) {
+			return str_repeat('|',sizeof($this->values)-1);
+		}
+		return implode('|',$this->legends);
+	}
+
+//@}
 
 /**
  * @name Data Serie Color (@c chco).

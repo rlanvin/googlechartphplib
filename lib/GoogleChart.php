@@ -127,7 +127,8 @@ class GoogleChart extends GoogleChartApi
 
 	protected $fills = null;
 
-	protected $_compute_data_label = false;
+	protected $_data_labels = false;
+	protected $_multiple_legends = false;
 
 	//~ protected $chma = false;
 	protected $margin = null;
@@ -947,7 +948,7 @@ class GoogleChart extends GoogleChartApi
 		$legends = array();
 		$legends_needed = false;
 
-		if ( $this->_compute_data_label ) {
+		if ( $this->_data_labels ) {
 			$labels = array();
 		}
 
@@ -980,13 +981,18 @@ class GoogleChart extends GoogleChartApi
 			if ( $tmp ) {
 				$fills[] = $tmp;
 			}
-			
-			$legends[] = $d->getLegend();
-			if ( $legends_needed == false && $d->hasCustomLegend() ) {
-				$legends_needed = true;
+
+			if ( $this->_multiple_legends ) {
+				$legends[] = $d->computeChdl();
+			}
+			else {
+				$legends[] = $d->getLegend();
+				if ( $legends_needed == false && $d->hasCustomLegend() ) {
+					$legends_needed = true;
+				}
 			}
 			
-			if ( $this->_compute_data_label ) {
+			if ( $this->_data_labels ) {
 				$labels[] = $d->computeChl();
 			}
 		}
@@ -1001,8 +1007,8 @@ class GoogleChart extends GoogleChartApi
 		if ( $styles_needed ) {
 			$q['chls'] = implode('|',$styles);
 		}
-		
-		if ( $this->_compute_data_label ) {
+
+		if ( $this->_data_labels ) {
 			$tmp = rtrim(implode('|',$labels),'|');
 			if ( $tmp ) {
 				$q['chl'] = $tmp;
@@ -1017,7 +1023,17 @@ class GoogleChart extends GoogleChartApi
 		}
 
 		// legends
-		if ( $legends_needed ) {
+		if ( $this->_multiple_legends ) {
+			$tmp = rtrim(implode('|',$legends),'|');
+			if ( $tmp ) {
+				$q['chdl'] = $tmp;
+				$q['chdlp'] = $this->computeChdlp();
+				if ( $this->chdls ) {
+					$q['chdls'] = $this->computeChdls();
+				}
+			}
+		}
+		elseif ( $legends_needed ) {
 			$q['chdl'] = implode('|',$legends);
 			$q['chdlp'] = $this->computeChdlp();
 			if ( $this->chdls ) {
