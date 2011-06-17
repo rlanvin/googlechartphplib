@@ -917,6 +917,10 @@ class GoogleChart extends GoogleChartApi
 		
 		if ( $value_min > 0 )
 			$value_min = 0;
+			
+		if ( $value_max == 0 ) {
+			$value_max = 1;
+		}
 
 		$this->scale = array('min' => $value_min, 'max' => $value_max);
 		return $this;

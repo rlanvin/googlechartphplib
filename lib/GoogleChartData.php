@@ -304,7 +304,7 @@ class GoogleChartData
 		$n = sizeof($labels);
 		$v = sizeof($this->values);
 		if ( $n > $v ) {
-			throw new InvalidArgumentException('Invalid labels, to many labels');
+			throw new InvalidArgumentException('Invalid labels, too many labels');
 		}
 		elseif ( $n < $v ) {
 			$labels = array_merge($labels,array_fill(0, $v - $n, ''));
@@ -356,7 +356,7 @@ class GoogleChartData
 		$n = sizeof($legends);
 		$v = sizeof($this->values);
 		if ( $n > $v ) {
-			throw new InvalidArgumentException('Invalid legends, to many legends');
+			throw new InvalidArgumentException('Invalid legends, too many legends');
 		}
 		elseif ( $n < $v ) {
 			$legends = array_merge($legends,array_fill(0, $v - $n, ''));
