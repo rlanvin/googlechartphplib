@@ -27,31 +27,41 @@ class GoogleBarChart extends GoogleChart
 {
 	protected $bar_width = 'a';
 	protected $bar_spacing = null;
+	protected $group_spacing = null;
+	protected $chbh = false;
 
 	public function setBarWidth($width)
 	{
 		$this->bar_width = $width;
 		return $this;
 	}
-	
-	public function setBarSpacing($space)
+
+	/**
+	 * @since 0.7
+	 */
+	public function setBarSpacing($space_between_bars, $space_between_groups, $relative = null)
 	{
-		$this->bar_spacing = $space;
+		$this->chbh = true;
+
+		$this->bar_spacing = $space_between_bars;
+		$this->group_spacing = $space_between_groups;
+
+		if ( is_bool($relative) ) {
+			$this->bar_width = $relative ? 'r' : 'a';
+		}
+
 		return $this;
 	}
-	
-	public function setGroupSpacing($space)
-	{
 
-	}
-	
 	public function computeChbh()
 	{
 		$str = $this->bar_width;
 
-		if ( $this->bar_spacing ) {
+		if ( $this->chbh ) {
 			$str .= ','.$this->bar_spacing;
+			$str .= ','.$this->group_spacing;
 		}
+	
 
 		return $str;
 	}
