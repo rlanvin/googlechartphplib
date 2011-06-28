@@ -39,7 +39,7 @@ class GoogleBarChart extends GoogleChart
 	/**
 	 * @since 0.7
 	 */
-	public function setBarSpacing($space_between_bars, $space_between_groups, $relative = null)
+	public function setBarSpacing($space_between_bars, $space_between_groups = 4, $relative = null)
 	{
 		$this->chbh = true;
 
