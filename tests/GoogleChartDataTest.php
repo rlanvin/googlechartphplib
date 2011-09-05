@@ -33,6 +33,20 @@ class GoogleChartDataTest extends PHPUnit_Framework_TestCase
 	}
 	
 	/**
+	 * EncodeSimple and encodeExtended have a possible division by zero bug 
+	 * when $values has a max of 0.
+	 * @see Issue #7
+	 */
+	public function testEncodeEmptyValues()
+	{
+		$data = new GoogleChartData(array(0));
+		$str = $data->computeChd(GoogleChart::SIMPLE_ENCODING);
+		//~ var_dump($str);
+		$str = $data->computeChd(GoogleChart::EXTENDED_ENCODING);
+		//~ var_dump($str);
+	}
+
+	/**
 	 * Line style
 	 */
 	public function testChls()

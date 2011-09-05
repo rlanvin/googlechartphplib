@@ -9,7 +9,9 @@
  *
  * For the full copyright and license information, please view the LICENSE file.
  */
- 
+
+require_once 'GoogleChart.php';
+
 /**
  * A data series.
  *
@@ -638,7 +640,14 @@ class GoogleChartData
 				continue;
 			}
 			
-			$n = round(61 * (($v - $min) / $max));
+			// Issue #7 (division by zero)
+			if ( $max == 0 ) {
+				$n = 0;
+			}
+			else {
+				$n = round(61 * (($v - $min) / $max));
+			}
+
 			if ( $n > 61 ) {
 				$str .= '9';
 			}
@@ -669,8 +678,8 @@ class GoogleChartData
 			$max = max($values);
 		}
 		$max = $max + abs($min);
-		if ( $max == 0 )
-			return '';
+		//~ if ( $max == 0 )
+			//~ return '';
 
 		$map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-.';
 		$str = '';
@@ -681,7 +690,14 @@ class GoogleChartData
 				continue;
 			}
 
-			$n = floor(64 * 64 * (($v - $min) / $max));
+			// Issue #7 (division by zero)
+			if ( $max == 0 ) {
+				$n = 0;
+			}
+			else {
+				$n = floor(64 * 64 * (($v - $min) / $max));
+			}
+
 			if ( $n > (64*64 - 1) ) {
 				$str .= '..';
 			}
