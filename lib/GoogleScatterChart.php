@@ -14,9 +14,13 @@ require_once 'GoogleChart.php';
 
 /**
  * A scatter chart as a weird way of handling data series.
+ *
+ * Pass de data as an array of arrays, each representing a point (x, y, size).
  */
 class GoogleScatterChart extends GoogleChart
 {
+	protected $_multiple_legends = true;
+
 	public function __construct($width, $height)
 	{
 		$this->type = 's';
@@ -25,7 +29,11 @@ class GoogleScatterChart extends GoogleChart
 	}
 
 	/**
-	 * This function needs to do some funky stuffs with the data series.
+	 * This function needs to do some funky stuffs with the data series, because
+	 * the chd parameter of scatter charts work quite differently.
+	 * chd=<x_values>|<y_values>[|<optional_point_sizes>]
+	 *
+	 * So basically each point must be split into 3 values, placed on 3 GoogleChartData objects.
 	 */
 	protected function compute(array & $q)
 	{
@@ -37,8 +45,10 @@ class GoogleScatterChart extends GoogleChart
 		$series_x = array();
 		$series_y = array();
 		$series_size = array();
+		$legends = array();
 		foreach ( $this->data as $i => $data ) {
 			$colors[] = $data->computeChco();
+			$legends[] = $data->getLegend();
 
 			$data_x = array();
 			$data_y = array();
@@ -58,7 +68,6 @@ class GoogleScatterChart extends GoogleChart
 		$series_x = self::interlace($series_x);
 		$series_y = self::interlace($series_y);
 		$series_size = self::interlace($series_size);
-//~ var_dump($series_size);
 
 		$series_x = new GoogleChartData($series_x);
 		$series_y = new GoogleChartData($series_y);
@@ -67,14 +76,22 @@ class GoogleScatterChart extends GoogleChart
 		$this->data = array($series_x,$series_y,$series_size);
 
 		$this->setAutoScale(false);
+		
+		// rebuild the legends
+		$series_x->setLegends($legends);
+		
 		// compute
 		parent::compute($q);
+		unset($q['chds']); // DEBUG
 
 		$this->chco = implode('|',$colors);
 
 		$this->data = $old_data;
 	}
 	
+	/**
+	 * Take an array of arrays, and return a single array with the columns interlaced.
+	 */
 	static public function interlace($array)
 	{
 		$result = array();

@@ -4,49 +4,47 @@
 require '../lib/GoogleScatterChart.php';
 
 $chart = new GoogleScatterChart(300, 150);
+
+$x_axis = new GoogleChartAxis('x');
+$chart->addAxis($x_axis);
+
+$y_axis = new GoogleChartAxis('y');
+$chart->addAxis($y_axis);
 //~ $chart->setScale(0,100);
-$chart->setDataFormat(GoogleChart::EXTENDED_ENCODING);
+//~ $chart->setDataFormat(GoogleChart::EXTENDED_ENCODING);
 
-//~ $data = new GoogleChartData(array(10,15,25,30,45,55,58));
-//~ $data->setLegend('Foobar');
-//~ $chart->addData($data);
+$data = array(
+	array(12, 98, 84),
+	array(75, 27, 69),
+	array(23, 56, 47),
+	array(68, 58, 60),
+	array(34, 18, 64),
+);
 
-$data = array();
-for ( $x = 2; $x < 4; $x++ ) {
-	for ( $y = 1; $y < 4; $y++ ) {
-		$data[] = array($x,$y,rand(10,100));
-		//~ $data[] = array(rand(1,100),rand(1,100),rand(1,100));
-	}
-}
-//~ var_dump($data);
-
-// no legend for this data serie
 $data = new GoogleChartData($data);
 $data->setColor('FF0000');
-$data->setLegend('Dog');
-$chart->addData($data);
-
-var_dump($chart->getQuery());
-printf('<iframe src="%s" width="500" height="500"></iframe>',$chart->getValidationUrl());
-echo $chart->toHtml();
-//~ header('Content-Type:image/png');
-//~ echo $chart;
-
-
-$data = array();
-for ( $x = 0; $x < 3; $x++ ) {
-	for ( $y = 0; $y < 2; $y++ ) {
-		$data[] = array($x,$y,rand(10,100));
-		//~ $data[] = array(rand(1,100),rand(1,100),rand(1,100));
-	}
-}
-//~ var_dump($data);
-
-$data = new GoogleChartData($data);
-$data->setColor('0000FF');
 $data->setLegend('Cats');
 $chart->addData($data);
 
-var_dump($chart->getQuery());
-printf('<iframe src="%s" width="500" height="500"></iframe>',$chart->getValidationUrl());
-echo $chart->toHtml();
+//~ var_dump($chart->getQuery());
+//~ printf('<iframe src="%s" width="500" height="500"></iframe>',$chart->getValidationUrl());
+//~ echo $chart->toHtml();
+
+
+$data = array(
+	array(87, 60, 23),
+	array(41, 34, 81),
+	array(96, 79, 94),
+	array(71, 74, 93),
+	array(9, 76, 54),
+);
+
+$data = new GoogleChartData($data);
+$data->setColor('0000FF');
+$data->setLegend('Dogs');
+$chart->addData($data);
+
+//~ var_dump($chart->getQuery());
+//~ printf('<iframe src="%s" width="500" height="500"></iframe>',$chart->getValidationUrl());
+//~ echo $chart->toHtml();
+echo $chart;

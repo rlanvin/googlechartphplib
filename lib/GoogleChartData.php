@@ -379,7 +379,7 @@ class GoogleChartData
 	/**
 	 * Compute @c chdl parameter.
 	 *
-	 * Only for Pie Chart.
+	 * Only for Pie Chart and Scatter Charts.
 	 *
 	 * @see computeChdl()
 	 *
@@ -433,8 +433,9 @@ class GoogleChartData
 	 */
 	public function computeChco($delimiter = '|')
 	{
-		if ( is_array($this->color) )
-			return implode('|',$this->color);
+		if ( is_array($this->color) ) {
+			return implode($delimiter,$this->color);
+		}
 
 		return $this->color;
 	}
